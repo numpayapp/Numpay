@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(uuid())
+  firstName     String
+  lastName      String
+  phoneNumber   String     @unique
+  walletAddress String     @unique
+  createdAt     DateTime   @default(now())
+  deletedAt     DateTime?
+  status        UserStatus @default(ACTIVE)
+
+  // Relations
+  sentTransactions     Transaction[] @relation("Sender")
+  receivedTransactions Transaction[] @relation("Receiver")
+  sentRequests         Request[]     @relation("Requester")
+  receivedRequests     Request[]     @relation("RequestReceiver")
+
+  @@map("users")
+}
+
+model Transaction {
+  id         String   @id @default(uuid())
+  txid       String   @unique
+  senderId   String
+  receiverId String
+  amountSent Float
+  decimals   Int      @default(6)
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("Sender", fields: [senderId], references: [id])
+  receiver User @relation("Receiver", fields: [receiverId], references: [id])
+
+  @@map("transactions")
+}
+
+model Request {
+  id              String        @id @default(uuid())
+  requesterId     String
+  requestType     RequestType
+  requestFromId   String
+  amountRequested Float
+  requestStatus   RequestStatus @default(PENDING)
+  requestDate     DateTime      @default(now())
+
+  requester   User @relation("Requester", fields: [requesterId], references: [id])
+  requestFrom User @relation("RequestReceiver", fields: [requestFromId], references: [id])
+
+  @@map("requests")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum RequestType {
+  PAYMENT
+  REFUND
+  OTHER
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELED
+}
