@@ -169,7 +169,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/kunalgarg/Downloads/cash-tide-backend/src/generated/prisma",
+      "value": "/Users/olinkstech/Documents/Buildorz/cash-tide-backend/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -178,12 +178,12 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "darwin-arm64",
+        "value": "darwin",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/kunalgarg/Downloads/cash-tide-backend/prisma/schema.prisma",
+    "sourceFilePath": "/Users/olinkstech/Documents/Buildorz/cash-tide-backend/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -197,7 +197,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {
