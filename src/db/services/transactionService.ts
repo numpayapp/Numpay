@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 
 export const transactionService = {
     // Create
-    createTransaction: async (data: CreateTransactionInput): Promise<Transaction> => {
+    createTransaction: async (data: Transaction): Promise<Transaction> => {
         return prisma.transaction.create({
             data
         })
@@ -22,9 +22,9 @@ export const transactionService = {
         })
     },
 
-    getTransactionByTxid: async (txid: string): Promise<Transaction | null> => {
+    getTransactionByTxid: async (id: string): Promise<Transaction | null> => {
         return prisma.transaction.findUnique({
-            where: { txid },
+            where: { id },
             include: {
                 sender: true,
                 receiver: true

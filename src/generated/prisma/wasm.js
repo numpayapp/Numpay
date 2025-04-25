@@ -130,7 +130,7 @@ exports.Prisma.UserScalarFieldEnum = {
 
 exports.Prisma.TransactionScalarFieldEnum = {
   id: 'id',
-  txid: 'txid',
+  txhash: 'txhash',
   senderId: 'senderId',
   receiverId: 'receiverId',
   amountSent: 'amountSent',

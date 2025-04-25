@@ -12,7 +12,7 @@ export type UpdateUserInput = Partial<CreateUserInput> & {
 }
 
 export type CreateTransactionInput = {
-    txid: string
+    txhash: string
     senderId: string
     receiverId: string
     amountSent: number

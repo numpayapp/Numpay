@@ -16,8 +16,8 @@ datasource db {
 
 model User {
   id            String     @id @default(uuid())
-  firstName     String
-  lastName      String
+  firstName     String?
+  lastName      String?
   phoneNumber   String     @unique
   walletAddress String     @unique
   createdAt     DateTime   @default(now())
@@ -35,7 +35,7 @@ model User {
 
 model Transaction {
   id         String   @id @default(uuid())
-  txid       String   @unique
+  txhash     String   @unique
   senderId   String
   receiverId String
   amountSent Float
