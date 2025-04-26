@@ -29,6 +29,7 @@ interface Environment {
     TWILIO_AUTH_TOKEN: string;
     TWILIO_SERVICE_SID: string;
     PORT: string | number;
+    TWILIO_PHONE_NUMBER: string;
     isProduction: boolean;
 }
 const environment = {
@@ -37,6 +38,7 @@ const environment = {
     TWILIO_AUTH_TOKEN: isProduction ? process.env.TWILIO_AUTH_TOKEN : process.env.TWILIO_AUTH_TOKEN,
     TWILIO_SERVICE_SID: isProduction ? process.env.TWILIO_SERVICE_SID : process.env.TWILIO_SERVICE_SID,
     PORT: process.env.PORT || 3000,
+    TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
     isProduction,
     // Export other environment variables here
 };
