@@ -1,4 +1,4 @@
-import { PrismaClient, Transaction } from '../../generated/prisma'
+import { PrismaClient, Transaction } from '@prisma/client'
 import { CreateTransactionInput } from '../../types'
 
 const prisma = new PrismaClient()
