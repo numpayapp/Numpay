@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { generateVerificationCodeController, verifyCodeController } from './controllers/verification/verification.controller';
 import { sendSMSController } from './controllers/sms/sms.controller';
+import userRoutes from './routes/user.route';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -14,7 +15,7 @@ app.use(cors());
 app.post('/api/verification/generate', generateVerificationCodeController);
 app.post('/api/verification/verify', verifyCodeController);
 app.post('/api/send-text', sendSMSController);
-app.use('/api/user',)
+app.use('/api/user', userRoutes);
 
 // Start server
 app.listen(port, () => {
