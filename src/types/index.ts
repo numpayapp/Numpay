@@ -1,8 +1,8 @@
 import { User, Transaction, Request, UserStatus, RequestType, RequestStatus } from '../generated/prisma'
 
 export type CreateUserInput = {
-    firstName: string
-    lastName: string
+    privyDID: string
+    name?: string
     phoneNumber: string
     walletAddress: string
 }

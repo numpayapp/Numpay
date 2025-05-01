@@ -13,11 +13,12 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "typescript": "^5.8.2"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",
+    "@privy-io/server-auth": "^1.21.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/uuid": "^10.0.0",

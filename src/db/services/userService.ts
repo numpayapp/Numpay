@@ -14,7 +14,13 @@ export const userService = {
     // Read
     getUserById: async (id: string): Promise<User | null> => {
         return prisma.user.findUnique({
-            where: { id }
+            where: { privyDID: id }
+        })
+    },
+
+    getUserByPhone: async (phoneNumber: string): Promise<User | null> => {
+        return prisma.user.findUnique({
+            where: { phoneNumber: phoneNumber }
         })
     },
 

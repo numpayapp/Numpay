@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import { userService } from "../../db/services/userService";
 import { CreateUserInput, UpdateUserInput } from "../../types";
+import { privy } from '../../services/privy';
 
 export const createUser = async (req: Request, res: Response) => {
     try {
         const userData: CreateUserInput = req.body;
 
-        if (!userData.phoneNumber || !userData.walletAddress) {
+        if (!userData.privyDID || !userData.phoneNumber || !userData.walletAddress) {
             return res.status(400).json({ message: "Phone number and wallet address are required" });
         }
 
@@ -23,6 +24,36 @@ export const createUser = async (req: Request, res: Response) => {
     }
 };
 
+export const pregenerateWallet = async (req: Request, res: Response) => {
+    try {
+        const { phoneNumber } = req.body;
+
+        if (!phoneNumber) {
+            return res.status(400).json({ message: "Phone number is required" });
+        }
+
+        const user = await privy.importUser({
+            linkedAccounts: [
+                {
+                    type: "phone",
+                    number: phoneNumber
+                }
+            ],
+            createEthereumWallet: true,
+        });
+        const walletAddress = user.wallet?.address;
+        const result = await userService.createUser({
+            privyDID: user.id,
+            phoneNumber: user.phone?.number || "",
+            walletAddress: walletAddress || "",
+        })
+        res.status(200).json(result);
+    } catch (error) {
+        console.error("Pregenerate Wallet Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 export const getUserById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -35,6 +66,23 @@ export const getUserById = async (req: Request, res: Response) => {
         res.status(200).json(user);
     } catch (error) {
         console.error("Get User Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const getUserByPhone = async (req: Request, res: Response) => {
+    try {
+        const { phoneNumber } = req.params;
+        console.log("Phone number:", phoneNumber);
+        const user = await userService.getUserByPhone(phoneNumber);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Get User By Phone Error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
