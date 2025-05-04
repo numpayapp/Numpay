@@ -33,13 +33,14 @@ model User {
 }
 
 model Transaction {
-  id         String   @id @default(uuid())
-  txhash     String   @unique
-  senderId   String
-  receiverId String
-  amountSent Float
-  decimals   Int      @default(6)
-  createdAt  DateTime @default(now())
+  id                String            @id @default(uuid())
+  txhash            String            @unique
+  transactionType   TransactionType
+  senderId          String
+  receiverId        String
+  amount            Float
+  transactionStatus TransactionStatus @default(PENDING)
+  createdAt         DateTime          @default(now())
 
   sender   User @relation("Sender", fields: [senderId], references: [id])
   receiver User @relation("Receiver", fields: [receiverId], references: [id])
@@ -50,14 +51,14 @@ model Transaction {
 model Request {
   id              String        @id @default(uuid())
   requesterId     String
+  requestToId     String
   requestType     RequestType
-  requestFromId   String
   amountRequested Float
   requestStatus   RequestStatus @default(PENDING)
   requestDate     DateTime      @default(now())
 
   requester   User @relation("Requester", fields: [requesterId], references: [id])
-  requestFrom User @relation("RequestReceiver", fields: [requestFromId], references: [id])
+  requestFrom User @relation("RequestReceiver", fields: [requestToId], references: [id])
 
   @@map("requests")
 }
@@ -72,6 +73,19 @@ enum RequestType {
   PAYMENT
   REFUND
   OTHER
+}
+
+enum TransactionType {
+  SEND
+  REQUEST
+  RECEIVE
+  DEPOSIT
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
 }
 
 enum RequestStatus {

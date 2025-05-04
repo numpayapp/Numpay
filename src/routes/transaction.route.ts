@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import {
-    recordTransaction,
-    getTransactionById,
-    getTransactionByTxHash,
-    getUserTransactions,
-    getTransactionStats
+  recordTransaction,
+  getTransactionById,
+  getTransactionByTxHash,
+  getUserTransactions,
+  getTransactionStats
 } from '../controllers/transaction/transaction.controller';
 
 const router = Router();

@@ -1,4 +1,4 @@
-import { User, Transaction, Request, UserStatus, RequestType, RequestStatus } from '../generated/prisma'
+import { UserStatus, RequestType, RequestStatus, TransactionStatus, TransactionType } from '@prisma/client'
 
 export type CreateUserInput = {
     privyDID: string
@@ -13,17 +13,19 @@ export type UpdateUserInput = Partial<CreateUserInput> & {
 
 export type CreateTransactionInput = {
     txhash: string
+    transactionType: TransactionType
     senderId: string
     receiverId: string
-    amountSent: number
-    decimals?: number
+    amount: number
+    transactionStatus: TransactionStatus
 }
 
 export type CreateRequestInput = {
     requesterId: string
-    requestType: RequestType
-    requestFromId: string
+    requestToId: string
     amountRequested: number
+    requestType: RequestType
+    requestStatus: RequestStatus
 }
 
 export type UpdateRequestInput = {

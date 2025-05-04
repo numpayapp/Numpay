@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 
 export const transactionService = {
     // Create
-    createTransaction: async (data: Transaction): Promise<Transaction> => {
+    createTransaction: async (data: CreateTransactionInput): Promise<Transaction> => {
         return prisma.transaction.create({
             data
         })
@@ -32,14 +32,48 @@ export const transactionService = {
         })
     },
 
-    getUserTransactions: async (userId: string): Promise<Transaction[]> => {
+    getUserTransactions: async (
+        identifier: string,
+        filter?: 'send' | 'receive' | 'request' | 'deposit'
+    ): Promise<Transaction[]> => {
+        // Resolve the real UUID from either id or privyDID
+        let user = await prisma.user.findUnique({ where: { id: identifier } })
+        if (!user) {
+            user = await prisma.user.findUnique({ where: { privyDID: identifier } })
+        }
+        if (!user) {
+            throw new Error('User not found')
+        }
+        const userId = user.id
+
+        const conditions: any[] = []
+        // Sent transactions
+        if (!filter || filter === 'send') {
+            conditions.push({
+                senderId: userId,
+                transactionType: 'SEND'
+            })
+        }
+
+        // Received transactions
+        if (!filter || filter === 'receive') {
+            conditions.push({
+                receiverId: userId,
+                transactionType: 'RECEIVE'
+            })
+        }
+
+        // Deposit transactions
+        if (!filter || filter === 'deposit') {
+            conditions.push({
+                receiverId: userId,
+                transactionType: 'DEPOSIT'
+            })
+        }
+
         return prisma.transaction.findMany({
-            where: {
-                OR: [
-                    { senderId: userId },
-                    { receiverId: userId }
-                ]
-            },
+            where: { OR: conditions },
+            orderBy: { createdAt: 'desc' },
             include: {
                 sender: true,
                 receiver: true

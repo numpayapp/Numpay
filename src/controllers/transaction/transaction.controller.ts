@@ -1,24 +1,39 @@
 import { Request, Response } from "express";
 import { transactionService } from "../../db/services/transactionService";
+import prisma from "../../db/prisma";
 
 export const recordTransaction = async (req: Request, res: Response) => {
     try {
-        const { senderId, receiverId, txhash, amount, createdAt } = req.body;
+        const { txhash, senderAddress, receiverAddress, amount, transactionType, transactionStatus } = req.body;
 
         // Validate input
-        if (!senderId || !txhash || !receiverId || !amount || !createdAt) {
+        if (!senderAddress || !txhash || !receiverAddress || !amount || !transactionType || !transactionStatus) {
             res.status(400).json({ message: "All fields are required" });
+        }
+
+        const sender = await prisma.user.findUnique({
+            where: { walletAddress: senderAddress },
+        });
+        if (!sender) {
+            res.status(404).json({ message: 'Sender user not found' });
+            return;
+        }
+        const receiver = await prisma.user.findUnique({
+            where: { walletAddress: receiverAddress },
+        });
+        if (!receiver) {
+            res.status(404).json({ message: 'Receiver user not found' });
+            return;
         }
 
         // Record the transaction in the database
         const transaction = await transactionService.createTransaction({
-            id: "",
             txhash,
-            senderId,
-            receiverId,
-            amountSent: amount,
-            createdAt: new Date(createdAt),
-            decimals: 18,
+            transactionType,
+            senderId: sender.id,
+            receiverId: receiver.id,
+            amount: amount,
+            transactionStatus
         });
 
         res.status(201).json(transaction);
@@ -65,19 +80,11 @@ export const getTransactionByTxHash = async (req: Request, res: Response) => {
 export const getUserTransactions = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
-        const { type } = req.query; // 'sent', 'received', or undefined for all
+        const { type } = req.query;
 
-        const transactions = await transactionService.getUserTransactions(userId);
+        const transactions = await transactionService.getUserTransactions(userId, type as any);
 
-        // Filter transactions based on type if specified
-        let filteredTransactions = transactions;
-        if (type === 'sent') {
-            filteredTransactions = transactions.filter(t => t.senderId === userId);
-        } else if (type === 'received') {
-            filteredTransactions = transactions.filter(t => t.receiverId === userId);
-        }
-
-        res.status(200).json(filteredTransactions);
+        res.status(200).json(transactions);
     } catch (error) {
         console.error("Error fetching user transactions:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -102,10 +109,10 @@ export const getTransactionStats = async (req: Request, res: Response) => {
         const stats = {
             totalSent: filteredTransactions
                 .filter(t => t.senderId === userId)
-                .reduce((sum, t) => sum + t.amountSent, 0),
+                .reduce((sum, t) => sum + t.amount, 0),
             totalReceived: filteredTransactions
                 .filter(t => t.receiverId === userId)
-                .reduce((sum, t) => sum + t.amountSent, 0),
+                .reduce((sum, t) => sum + t.amount, 0),
             transactionCount: filteredTransactions.length
         };
 

@@ -1,4 +1,4 @@
-import { PrismaClient, Request } from '../../generated/prisma'
+import { PrismaClient, Request } from '@prisma/client'
 import { CreateRequestInput, UpdateRequestInput } from '../../types'
 
 const prisma = new PrismaClient()
@@ -27,7 +27,7 @@ export const requestService = {
             where: {
                 OR: [
                     { requesterId: userId },
-                    { requestFromId: userId }
+                    { requestToId: userId }
                 ]
             },
             include: {
@@ -40,7 +40,7 @@ export const requestService = {
     getPendingRequests: async (userId: string): Promise<Request[]> => {
         return prisma.request.findMany({
             where: {
-                requestFromId: userId,
+                requestToId: userId,
                 requestStatus: 'PENDING'
             },
             include: {
