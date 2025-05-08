@@ -31,6 +31,7 @@ interface Environment {
     PORT: string | number;
     TWILIO_PHONE_NUMBER: string;
     isProduction: boolean;
+    BASE_URL: string;
 }
 const environment = {
     DATABASE_URL: isProduction ? process.env.DATABASE_URL : process.env.DATABASE_URL_TEST,
@@ -39,6 +40,7 @@ const environment = {
     TWILIO_SERVICE_SID: isProduction ? process.env.TWILIO_SERVICE_SID : process.env.TWILIO_SERVICE_SID,
     PORT: process.env.PORT || 3000,
     TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
+    BASE_URL: isProduction ? process.env.BASE_URL : "http://localhost:3000",
     isProduction,
     // Export other environment variables here
 };

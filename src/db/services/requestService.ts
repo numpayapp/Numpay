@@ -27,7 +27,7 @@ export const requestService = {
             where: {
                 OR: [
                     { requesterId: userId },
-                    { requestToId: userId }
+                    { payerId: userId }
                 ]
             },
             include: {
@@ -40,7 +40,7 @@ export const requestService = {
     getPendingRequests: async (userId: string): Promise<Request[]> => {
         return prisma.request.findMany({
             where: {
-                requestToId: userId,
+                payerId: userId,
                 requestStatus: 'PENDING'
             },
             include: {
@@ -51,14 +51,14 @@ export const requestService = {
     },
 
     // Update
-    updateRequestStatus: async (id: string, data: UpdateRequestInput): Promise<Request> => {
-        return prisma.request.update({
-            where: { id },
-            data,
-            include: {
-                requester: true,
-                requestFrom: true
-            }
-        })
-    }
+    // updateRequestStatus: async (id: string, data: UpdateRequestInput): Promise<Request> => {
+    //     return prisma.request.update({
+    //         where: { id },
+    //         data,
+    //         include: {
+    //             requester: true,
+    //             requestFrom: true
+    //         }
+    //     })
+    // }
 }

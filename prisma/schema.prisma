@@ -51,14 +51,16 @@ model Transaction {
 model Request {
   id              String        @id @default(uuid())
   requesterId     String
-  requestToId     String
+  payerId         String
+  payerPhone      String?
   requestType     RequestType
   amountRequested Float
+  requestMessage  String?
   requestStatus   RequestStatus @default(PENDING)
   requestDate     DateTime      @default(now())
 
   requester   User @relation("Requester", fields: [requesterId], references: [id])
-  requestFrom User @relation("RequestReceiver", fields: [requestToId], references: [id])
+  requestFrom User @relation("RequestReceiver", fields: [payerId], references: [id])
 
   @@map("requests")
 }
@@ -70,8 +72,8 @@ enum UserStatus {
 }
 
 enum RequestType {
-  PAYMENT
-  REFUND
+  GLOBAL
+  DIRECT
   OTHER
 }
 

@@ -22,7 +22,7 @@ router.post("/pregenerate", async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
-router.post("/update", async (req, res) => {
+router.put("/update/:id", async (req, res) => {
     try {
         await updateUser(req, res);
     } catch (error) {

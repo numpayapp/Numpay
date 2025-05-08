@@ -9,6 +9,8 @@ export type CreateUserInput = {
 
 export type UpdateUserInput = Partial<CreateUserInput> & {
     status?: UserStatus
+    name?: string
+    walletAddress?: string
 }
 
 export type CreateTransactionInput = {
@@ -22,7 +24,7 @@ export type CreateTransactionInput = {
 
 export type CreateRequestInput = {
     requesterId: string
-    requestToId: string
+    payerId: string
     amountRequested: number
     requestType: RequestType
     requestStatus: RequestStatus
@@ -30,4 +32,15 @@ export type CreateRequestInput = {
 
 export type UpdateRequestInput = {
     requestStatus: RequestStatus
+    requestLink?: string
+    requestMessage?: string
+    requestType?: RequestType
+    amountRequested?: number
+    payerId?: string
+    payerPhone?: string
+    requestId?: string
+    requestFrom?: string
+    requestTo?: string
+    requestDate?: Date
+    requestTime?: Date
 }
