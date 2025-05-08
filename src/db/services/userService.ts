@@ -39,7 +39,7 @@ export const userService = {
     // Update
     updateUser: async (id: string, data: UpdateUserInput): Promise<User> => {
         return prisma.user.update({
-            where: { id },
+            where: { privyDID: id },
             data
         })
     },
