@@ -140,3 +140,44 @@ export const cancelRequest = async (req: Request, res: Response) => {
 
     res.status(200).json({ success: true, message: "Request canceled successfully." });
 }
+
+// Update request
+export const updateRequestStatus = async (req: Request, res: Response) => {
+    const { requestId } = req.params;
+    const { status } = req.body;
+
+    if (!requestId || !status) {
+        res.status(400).json({ error: "Request ID and status are required." });
+        return;
+    }
+
+    const request = await prisma.request.findUnique({
+        where: { id: requestId }
+    });
+
+    if (!request) {
+        res.status(404).json({ error: "Request not found." });
+        return;
+    }
+
+    const updated = await requestService.updateRequestStatus(requestId, status);
+    if (updated && status === "COMPLETED") {
+        // Notify the payer about the completion
+        const payer = await prisma.user.findUnique({
+            where: { id: request.payerId }
+        });
+        if (payer) {
+            await sendSMS(payer.phoneNumber, `Your request with ID ${requestId} has been completed.`);
+        }
+    } else if (updated && status === "CANCELED") {
+        // Notify the payer about the cancellation
+        const payer = await prisma.user.findUnique({
+            where: { id: request.payerId }
+        });
+        if (payer) {
+            await sendSMS(payer.phoneNumber, `Your request with ID ${requestId} has been canceled.`);
+        }
+    }
+
+    res.status(200).json({ success: true, message: "Request status updated successfully." });
+};

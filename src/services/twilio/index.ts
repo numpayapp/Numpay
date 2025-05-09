@@ -35,19 +35,19 @@ async function listService() {
  * @returns Promise with message details
  */
 const sendSMS = async (to: string, message: string) => {
-    try {
-        const messageResponse = await TwilioClient.messages.create({
-            body: message,
-            to: to,
-            from: environment.TWILIO_PHONE_NUMBER, // Your Twilio phone number
-        });
+    // try {
+    //     const messageResponse = await TwilioClient.messages.create({
+    //         body: message,
+    //         to: to,
+    //         from: environment.TWILIO_PHONE_NUMBER, // Your Twilio phone number
+    //     });
 
-        console.log(`Message sent successfully. SID: ${messageResponse.sid}`);
-        return messageResponse;
-    } catch (error) {
-        console.error('Error sending SMS:', error);
-        throw error;
-    }
+    //     console.log(`Message sent successfully. SID: ${messageResponse.sid}`);
+    //     return messageResponse;
+    // } catch (error) {
+    //     console.error('Error sending SMS:', error);
+    //     throw error;
+    // }
 }
 
 // Export all functions

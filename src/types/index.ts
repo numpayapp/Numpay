@@ -31,7 +31,7 @@ export type CreateRequestInput = {
 }
 
 export type UpdateRequestInput = {
-    requestStatus: RequestStatus
+    requestStatus?: RequestStatus
     requestLink?: string
     requestMessage?: string
     requestType?: RequestType

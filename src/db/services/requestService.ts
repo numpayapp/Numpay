@@ -1,4 +1,4 @@
-import { PrismaClient, Request } from '@prisma/client'
+import { PrismaClient, Request, RequestStatus } from '@prisma/client'
 import { CreateRequestInput, UpdateRequestInput } from '../../types'
 import { cancelRequest } from '../../controllers/request/request.controller'
 
@@ -65,15 +65,16 @@ export const requestService = {
         })
     },
 
-    // Update
-    // updateRequestStatus: async (id: string, data: UpdateRequestInput): Promise<Request> => {
-    //     return prisma.request.update({
-    //         where: { id },
-    //         data,
-    //         include: {
-    //             requester: true,
-    //             requestFrom: true
-    //         }
-    //     })
-    // }
+    updateRequestStatus: async (requestId: string, status: RequestStatus): Promise<Request> => {
+        return prisma.request.update({
+            where: { id: requestId },
+            data: {
+                requestStatus: status,
+            },
+            include: {
+                requester: true,
+                requestFrom: true
+            }
+        })
+    }
 }
