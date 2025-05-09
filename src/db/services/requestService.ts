@@ -1,5 +1,6 @@
 import { PrismaClient, Request } from '@prisma/client'
 import { CreateRequestInput, UpdateRequestInput } from '../../types'
+import { cancelRequest } from '../../controllers/request/request.controller'
 
 const prisma = new PrismaClient()
 
@@ -42,6 +43,20 @@ export const requestService = {
             where: {
                 payerId: userId,
                 requestStatus: 'PENDING'
+            },
+            include: {
+                requester: true,
+                requestFrom: true
+            }
+        })
+    },
+
+    // write function to cancel request
+    cancelRequest: async (requestId: string): Promise<Request> => {
+        return prisma.request.update({
+            where: { id: requestId },
+            data: {
+                requestStatus: 'CANCELED'
             },
             include: {
                 requester: true,

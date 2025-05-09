@@ -147,3 +147,21 @@ export const getAllUsers = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+export const getUserTransactionSummary = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+
+        const existingUser = await userService.getUserById(userId);
+        if (!existingUser) {
+            res.status(404).json({ message: "User not found" });
+            return
+        }
+
+        const summary = await userService.getUserTransactionSummary(userId);
+        res.status(200).json(summary);
+    } catch (error) {
+        console.error("Get Transaction Summary Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};

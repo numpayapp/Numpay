@@ -1,4 +1,4 @@
-import { PrismaClient, User } from '@prisma/client'
+import { PrismaClient, User, Transaction, Request } from '@prisma/client'
 import { CreateUserInput, UpdateUserInput } from '../../types'
 
 const prisma = new PrismaClient()
@@ -53,5 +53,94 @@ export const userService = {
                 status: 'INACTIVE'
             }
         })
+    },
+
+    getUserTransactionSummary: async (userId: string) => {
+        const transactions = await prisma.transaction.findMany({
+            where: {
+                OR: [
+                    { senderId: userId },
+                    { receiverId: userId }
+                ]
+            },
+            include: {
+                sender: {
+                    select: {
+                        name: true,
+                        phoneNumber: true,
+                        walletAddress: true
+                    }
+                },
+                receiver: {
+                    select: {
+                        name: true,
+                        phoneNumber: true,
+                        walletAddress: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+
+        const requests = await prisma.request.findMany({
+            where: {
+                OR: [
+                    { requesterId: userId },
+                    { payerId: userId }
+                ]
+            },
+            include: {
+                requester: {
+                    select: {
+                        name: true,
+                        phoneNumber: true,
+                        walletAddress: true
+                    }
+                }
+            },
+            orderBy: {
+                requestDate: 'desc'
+            }
+        });
+
+        // Combine and sort all activities
+        const allActivities = [
+            ...transactions.map(t => ({
+                ...t,
+                type: 'TRANSACTION',
+                date: t.createdAt,
+                amount: t.amount,
+                isOutgoing: t.senderId === userId
+            })),
+            ...requests.map(r => ({
+                ...r,
+                type: 'REQUEST',
+                date: r.requestDate,
+                amount: r.amountRequested,
+                isOutgoing: r.requesterId === userId
+            }))
+        ].sort((a, b) => b.date.getTime() - a.date.getTime());
+
+        // Calculate totals
+        const totalSent = transactions
+            .filter(t => t.senderId === userId)
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const totalReceived = transactions
+            .filter(t => t.receiverId === userId)
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        return {
+            activities: allActivities,
+            summary: {
+                totalSent,
+                totalReceived,
+                netBalance: totalReceived - totalSent,
+                totalTransactions: transactions.length,
+                totalRequests: requests.length
+            }
+        };
     }
 }

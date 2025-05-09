@@ -1,8 +1,12 @@
 import { Router } from "express";
-import { requestMoney } from "../controllers/request/request.controller";
+import { requestMoney, cancelRequest, getPendingRequests, getRequestById, getUserRequests } from "../controllers/request/request.controller";
 
 const router = Router();
 // POST /api/request-money
 router.post("/", requestMoney);
+router.get("/get/:id", getRequestById);
+router.post("/cancel/:requestId", cancelRequest);
+router.get("/get/all/:userId", getUserRequests);
+router.get("/pending/:userId", getPendingRequests);
 
 export default router;
