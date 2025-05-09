@@ -11,6 +11,15 @@ export const createUser = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Phone number and wallet address are required" });
         }
 
+        //sanitize phone number
+        userData.phoneNumber = userData.phoneNumber.replace(/[\s-]/g, "");
+        console.log("Sanitized Phone number:", userData.phoneNumber);
+        // Check if the user already exists
+        const existingUserByPhone = await userService.getUserByPhone(userData.phoneNumber);
+        if (existingUserByPhone) {
+            return res.status(409).json({ message: "User with this phone number already exists" });
+        }
+
         const existingUser = await userService.getUserByWallet(userData.walletAddress);
         if (existingUser) {
             return res.status(409).json({ message: "User with this wallet address already exists" });
@@ -73,8 +82,13 @@ export const getUserById = async (req: Request, res: Response) => {
 export const getUserByPhone = async (req: Request, res: Response) => {
     try {
         const { phoneNumber } = req.params;
-        console.log("Phone number:", phoneNumber);
-        const user = await userService.getUserByPhone(phoneNumber);
+        if (!phoneNumber) {
+            return res.status(400).json({ message: "Phone number is required" });
+        }
+        // Check if phone number has spaces or dashes
+        const sanitizedPhoneNumber = phoneNumber.replace(/[\s-]/g, "");
+        console.log("Phone number:", sanitizedPhoneNumber);
+        const user = await userService.getUserByPhone(sanitizedPhoneNumber);
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
