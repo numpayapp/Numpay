@@ -179,3 +179,35 @@ export const getUserTransactionSummary = async (req: Request, res: Response) => 
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+export const getUserTransactionSummaryController = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+
+        // Validate user exists
+        const user = await userService.getUserById(userId);
+        if (!user) {
+            res.status(404).json({
+                message: "User not found"
+            });
+            return;
+        }
+
+        // Get transaction summary
+        const summary = await userService.getUserTransactionSummary(userId);
+
+        res.status(200).json({
+            success: true,
+            data: summary
+        });
+        return;
+
+    } catch (error) {
+        console.error('Transaction Summary Error:', error);
+        res.status(500).json({
+            message: "Error fetching transaction summary",
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+        return
+    }
+};

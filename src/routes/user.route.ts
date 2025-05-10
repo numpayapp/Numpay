@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createUser, pregenerateWallet, getUserById, getUserByPhone, getUserByWallet, updateUser, getUserTransactionSummary } from "../controllers/users/user.controller";
+import { createUser, pregenerateWallet, getUserById, getUserByPhone, getUserByWallet, updateUser, getUserTransactionSummary, getUserTransactionSummaryController } from "../controllers/users/user.controller";
 
 const router = Router();
 
@@ -102,5 +102,8 @@ router.get("transaction-summary/:userId/", getUserTransactionSummary);
 //         res.status(500).json({ message: "Internal server error" });
 //     }
 // });
+
+// Transaction summary route
+router.get("/:userId/summary", getUserTransactionSummaryController);
 
 export default router;
