@@ -9,6 +9,6 @@ router.post("/cancel/:requestId", cancelRequest);
 router.get("/get/all/:userId", getUserRequests);
 router.get("/pending/:userId", getPendingRequests);
 // update route
-router.put("/update-status/:id", updateRequestStatus);
+router.put("/update-status/:requestId", updateRequestStatus);
 
 export default router;
