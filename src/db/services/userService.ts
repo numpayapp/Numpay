@@ -6,6 +6,7 @@ const prisma = new PrismaClient()
 export const userService = {
     // Create
     createUser: async (data: CreateUserInput): Promise<User> => {
+        data.phoneNumber = data.phoneNumber.replace(/[\s-]/g, "");
         return prisma.user.create({
             data
         })

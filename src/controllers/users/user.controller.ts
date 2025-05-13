@@ -62,6 +62,7 @@ export const pregenerateWallet = async (req: Request, res: Response) => {
             privyDID: user.id,
             phoneNumber: user.phone?.number || "",
             walletAddress: walletAddress || "",
+            countryCode: user.phone?.number.split("")[0] || "",
         })
         res.status(200).json(result);
     } catch (error) {

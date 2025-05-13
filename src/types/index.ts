@@ -5,6 +5,7 @@ export type CreateUserInput = {
     name?: string
     phoneNumber: string
     walletAddress: string
+    countryCode: string
 }
 
 export type UpdateUserInput = Partial<CreateUserInput> & {
