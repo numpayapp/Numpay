@@ -111,6 +111,8 @@ export const requestMoney = async (req: Request, res: Response) => {
     }
 };
 
+// @Dev: Write Global request link generator function
+
 export const cancelRequest = async (req: Request, res: Response) => {
     const { requestId } = req.params;
 
