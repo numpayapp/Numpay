@@ -13,6 +13,7 @@ export const createUser = async (req: Request, res: Response) => {
 
         //sanitize phone number
         userData.phoneNumber = userData.phoneNumber.replace(/[\s-]/g, "");
+        const countryCode = userData.phoneNumber.split("")[0];
         console.log("Sanitized Phone number:", userData.phoneNumber);
         // Check if the user already exists
         const existingUserByPhone = await userService.getUserByPhone(userData.phoneNumber);
@@ -25,7 +26,13 @@ export const createUser = async (req: Request, res: Response) => {
             return res.status(409).json({ message: "User with this wallet address already exists" });
         }
 
-        const result = await userService.createUser(userData);
+        const completeData = {
+            ...userData,
+            status: "ACTIVE",
+            countryCode: countryCode,
+        }
+
+        const result = await userService.createUser(completeData);
         res.status(201).json(result);
     } catch (error) {
         console.error("Create User Error:", error);
