@@ -113,6 +113,55 @@ export const requestMoney = async (req: Request, res: Response) => {
 
 // @Dev: Write Global request link generator function
 
+export const requestMoneyGlobal = async (req: Request, res: Response) => {
+    try {
+        const { amount, message, requesterId } = req.body;
+
+        if (!requesterId) {
+            res.status(400).json({ error: "Requester ID is required." });
+            return;
+        }
+
+        if (!amount) {
+            res.status(400).json({ error: "Phone and amount are required." });
+            return;
+        }
+
+        if (amount <= 0) {
+            res.status(400).json({ error: "Amount must be greater than zero." });
+            return;
+        }
+
+        // Store the request
+        const newRequest = await prisma.request.create({
+            data: {
+                requesterId: requesterId,
+                amountRequested: amount,
+                requestMessage: message,
+                requestType: "GLOBAL",
+                requestLink: "",
+                requestStatus: "PENDING"
+            }
+        });
+
+        // Generate a global link for the request
+        const generatedLink = `${environment.BASE_URL}/request/${newRequest.id}`;
+
+        // Update Request with the generated link
+        await prisma.request.update({
+            where: { id: newRequest.id },
+            data: {
+                requestLink: generatedLink
+            }
+        });
+
+        res.status(201).json({ success: true, requestId: newRequest.id, link: generatedLink });
+    } catch (error) {
+        console.error("Request Money Error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
 export const cancelRequest = async (req: Request, res: Response) => {
     const { requestId } = req.params;
 

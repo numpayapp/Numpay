@@ -62,8 +62,8 @@ model Request {
   requestStatus   RequestStatus @default(PENDING)
   requestDate     DateTime      @default(now())
 
-  requester   User @relation("Requester", fields: [requesterId], references: [id])
-  requestFrom User @relation("RequestReceiver", fields: [payerId], references: [id])
+  requester   User? @relation("Requester", fields: [requesterId], references: [id])
+  requestFrom User? @relation("RequestReceiver", fields: [payerId], references: [id])
 
   @@map("requests")
 }

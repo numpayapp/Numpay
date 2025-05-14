@@ -12,8 +12,9 @@ export const createUser = async (req: Request, res: Response) => {
         }
 
         //sanitize phone number
+        console.log("privy no", userData.phoneNumber);
+        const countryCode = userData.phoneNumber.split(" ")[0];
         userData.phoneNumber = userData.phoneNumber.replace(/[\s-]/g, "");
-        const countryCode = userData.phoneNumber.split("")[0];
         console.log("Sanitized Phone number:", userData.phoneNumber);
         // Check if the user already exists
         const existingUserByPhone = await userService.getUserByPhone(userData.phoneNumber);
@@ -62,7 +63,7 @@ export const pregenerateWallet = async (req: Request, res: Response) => {
             privyDID: user.id,
             phoneNumber: user.phone?.number || "",
             walletAddress: walletAddress || "",
-            countryCode: user.phone?.number.split("")[0] || "",
+            countryCode: user.phone?.number.split(" ")[0] || "",
         })
         res.status(200).json(result);
     } catch (error) {
