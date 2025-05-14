@@ -7,19 +7,15 @@ router.post("/register", async (req, res) => {
     try {
         const data = req.body;
         await createUser(req, res);
-        res.status(201).json({ message: "User created successfully" });
     } catch (error) {
         console.error("Error creating user:", error);
-        res.status(500).json({ message: "Internal server error" });
     }
 });
 router.post("/pregenerate", async (req, res) => {
     try {
         await pregenerateWallet(req, res);
-        res.status(201).json({ message: "User created successfully" });
     } catch (error) {
         console.error("Error creating user:", error);
-        res.status(500).json({ message: "Internal server error" });
     }
 });
 router.put("/update/:id", async (req, res) => {
@@ -27,7 +23,6 @@ router.put("/update/:id", async (req, res) => {
         await updateUser(req, res);
     } catch (error) {
         console.error("Error updating user:", error);
-        res.status(500).json({ message: "Internal server error" });
     }
 });
 router.get("/get/:id", async (req, res) => {
@@ -35,7 +30,6 @@ router.get("/get/:id", async (req, res) => {
         await getUserById(req, res);
     } catch (error) {
         console.error("Error fetching user:", error);
-        res.status(500).json({ message: "Internal server error" });
     }
 });
 router.get("/phone/:phoneNumber", async (req, res) => {

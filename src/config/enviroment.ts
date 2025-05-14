@@ -40,7 +40,7 @@ const environment = {
     TWILIO_SERVICE_SID: isProduction ? process.env.TWILIO_SERVICE_SID : process.env.TWILIO_SERVICE_SID,
     PORT: process.env.PORT || 3000,
     TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
-    BASE_URL: isProduction ? process.env.BASE_URL : "http://localhost:3000",
+    BASE_URL: isProduction ? process.env.BASE_URL : "http://localhost:5173",
     isProduction,
     // Export other environment variables here
 };

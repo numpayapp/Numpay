@@ -36,14 +36,14 @@ export const getPendingRequests = async (req: Request, res: Response) => {
 
 export const requestMoney = async (req: Request, res: Response) => {
     try {
-        const { requesterId, payerPhone, amount, message, requestType } = req.body;
+        const { requesterId, payerPhone, amountRequested, message, requestType } = req.body;
 
-        if (!payerPhone || !amount) {
+        if (!payerPhone || !amountRequested) {
             res.status(400).json({ error: "Phone and amount are required." });
             return;
         }
 
-        if (amount <= 0) {
+        if (amountRequested <= 0) {
             res.status(400).json({ error: "Amount must be greater than zero." });
             return;
         }
@@ -76,7 +76,7 @@ export const requestMoney = async (req: Request, res: Response) => {
                 requesterId,
                 payerId,
                 payerPhone,
-                amountRequested: amount,
+                amountRequested: amountRequested,
                 requestMessage: message,
                 requestType,
                 requestStatus: "PENDING"
@@ -92,7 +92,7 @@ export const requestMoney = async (req: Request, res: Response) => {
         if (receiver) {
             // Send in-app notification or push/SMS
             generatedLink = generateRequestLink(newRequest.id, requesterId, payerId);
-            await sendSMS(payerPhone, `You have a new money request from ${requesterId}. Amount: $${amount}.\nLink:${generatedLink}
+            await sendSMS(payerPhone, `You have a new money request from ${requesterId}. Amount: $${amountRequested}.\nLink:${generatedLink}
                 &to=${payerId}`);
         }
 
@@ -110,6 +110,57 @@ export const requestMoney = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+// @Dev: Write Global request link generator function
+
+export const requestMoneyGlobal = async (req: Request, res: Response) => {
+    try {
+        const { amountRequested, message, requesterId } = req.body;
+
+        if (!requesterId) {
+            res.status(400).json({ error: "Requester ID is required." });
+            return;
+        }
+
+        if (!amountRequested) {
+            res.status(400).json({ error: "Phone and amount are required." });
+            return;
+        }
+
+        if (amountRequested <= 0) {
+            res.status(400).json({ error: "Amount must be greater than zero." });
+            return;
+        }
+
+        // Store the request
+        const newRequest = await prisma.request.create({
+            data: {
+                requesterId: requesterId,
+                amountRequested: amountRequested,
+                requestMessage: message,
+                requestType: "GLOBAL",
+                requestLink: "",
+                requestStatus: "PENDING"
+            }
+        });
+
+        // Generate a global link for the request
+        const generatedLink = `${environment.BASE_URL}/request/${newRequest.id}`;
+
+        // Update Request with the generated link
+        await prisma.request.update({
+            where: { id: newRequest.id },
+            data: {
+                requestLink: generatedLink
+            }
+        });
+
+        res.status(201).json({ success: true, requestId: newRequest.id, link: generatedLink });
+    } catch (error) {
+        console.error("Request Money Error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
 
 export const cancelRequest = async (req: Request, res: Response) => {
     const { requestId } = req.params;

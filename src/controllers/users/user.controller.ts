@@ -12,6 +12,8 @@ export const createUser = async (req: Request, res: Response) => {
         }
 
         //sanitize phone number
+        console.log("privy no", userData.phoneNumber);
+        const countryCode = userData.phoneNumber.split(" ")[0];
         userData.phoneNumber = userData.phoneNumber.replace(/[\s-]/g, "");
         console.log("Sanitized Phone number:", userData.phoneNumber);
         // Check if the user already exists
@@ -25,7 +27,13 @@ export const createUser = async (req: Request, res: Response) => {
             return res.status(409).json({ message: "User with this wallet address already exists" });
         }
 
-        const result = await userService.createUser(userData);
+        const completeData = {
+            ...userData,
+            status: "ACTIVE",
+            countryCode: countryCode,
+        }
+
+        const result = await userService.createUser(completeData);
         res.status(201).json(result);
     } catch (error) {
         console.error("Create User Error:", error);
@@ -55,6 +63,7 @@ export const pregenerateWallet = async (req: Request, res: Response) => {
             privyDID: user.id,
             phoneNumber: user.phone?.number || "",
             walletAddress: walletAddress || "",
+            countryCode: user.phone?.number.split(" ")[0] || "",
         })
         res.status(200).json(result);
     } catch (error) {
