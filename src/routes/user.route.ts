@@ -5,7 +5,6 @@ const router = Router();
 
 router.post("/register", async (req, res) => {
     try {
-        const data = req.body;
         await createUser(req, res);
     } catch (error) {
         console.error("Error creating user:", error);
