@@ -30,15 +30,41 @@ interface AuthContextType {
   logout: () => void;
   verifyCode: (code: string) => Promise<boolean>;
   updateUser: (newName: string) => void;
+  getAuthToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { authenticated } = usePrivy();
+  const { authenticated, getAccessToken } = usePrivy();
   const [user, setUser] = useState<AppUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(authenticated);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Set up axios interceptor to include auth token
+  useLayoutEffect(() => {
+    const interceptor = axiosInstance.interceptors.request.use(
+      async (config) => {
+        try {
+          const token = await getAccessToken();
+          if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+          }
+        } catch (error) {
+          console.warn('Failed to get access token:', error);
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // Cleanup interceptor on unmount
+    return () => {
+      axiosInstance.interceptors.request.eject(interceptor);
+    };
+  }, [getAccessToken]);
 
   const { login: privyLogin } = useLogin({
     onComplete: async ({ user: privyUser }) => {
@@ -145,10 +171,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     showSuccess("Logged out", "You have been successfully logged out");
   };
 
+  const getAuthToken = async (): Promise<string | null> => {
+    try {
+      return await getAccessToken();
+    } catch (error) {
+      console.warn('Failed to get access token:', error);
+      return null;
+    }
+  };
+
   if (isLoading) return null;
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, verifyCode, updateUser }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, verifyCode, updateUser, getAuthToken }}>
       {children}
     </AuthContext.Provider>
   );
