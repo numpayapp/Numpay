@@ -30,6 +30,10 @@ interface MoneyRequest {
     name: string | null;
     phoneNumber: string;
   };
+  requestFrom?: {
+    name: string | null;
+    phoneNumber: string;
+  };
 }
 
 const Activity: React.FC = () => {
@@ -487,9 +491,9 @@ const Activity: React.FC = () => {
                           {formatDate(request.requestDate)}
                         </div>
                         <div className="text-xs text-gray-600 mt-1">
-                          <span>From: {request.requesterId === user?.dbId ? 'You' : request.requester.name + ' - ' + request.requester.phoneNumber}</span>
+                          <span>From: {request.requesterId === user?.dbId ? 'You' : (request.requester?.name || 'Unknown') + ' - ' + (request.requester?.phoneNumber || 'N/A')}</span>
                           <span className="mx-2">|</span>
-                          <span>To: {request.payerId === user?.dbId ? 'You' : request.requestFrom.name + ' - ' + request.requestFrom.phoneNumber}</span>
+                          <span>To: {request.payerId === user?.dbId ? 'You' : (request.requestFrom?.name || 'Unknown') + ' - ' + (request.requestFrom?.phoneNumber || 'N/A')}</span>
                         </div>
                       </div>
                     </div>
