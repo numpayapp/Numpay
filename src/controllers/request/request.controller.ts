@@ -68,6 +68,7 @@ export const requestMoney = async (req: Request, res: Response) => {
 
         if (existingRequest) {
             res.status(409).json({ error: "You already have a pending request to this user." });
+            return;
         }
 
         // Store the request

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { createUser, pregenerateWallet, getUserById, getUserByPhone, getUserByWallet, updateUser, getUserTransactionSummary, getUserTransactionSummaryController } from "../controllers/users/user.controller";
+import { authenticateUser } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -18,21 +19,21 @@ router.post("/pregenerate", async (req, res) => {
         console.error("Error creating user:", error);
     }
 });
-router.put("/update/:id", async (req, res) => {
+router.put("/update/:id", authenticateUser, async (req, res) => {
     try {
         await updateUser(req, res);
     } catch (error) {
         console.error("Error updating user:", error);
     }
 });
-router.get("/get/:id", async (req, res) => {
+router.get("/get/:id", authenticateUser, async (req, res) => {
     try {
         await getUserById(req, res);
     } catch (error) {
         console.error("Error fetching user:", error);
     }
 });
-router.get("/phone/:phoneNumber", async (req, res) => {
+router.get("/phone/:phoneNumber", authenticateUser, async (req, res) => {
     try {
         await getUserByPhone(req, res);
     } catch (error) {
@@ -40,7 +41,7 @@ router.get("/phone/:phoneNumber", async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
-router.get("/wallet/:id", async (req, res) => {
+router.get("/wallet/:id", authenticateUser, async (req, res) => {
     try {
         await getUserByWallet(req, res);
     } catch (error) {
@@ -50,7 +51,7 @@ router.get("/wallet/:id", async (req, res) => {
     }
 });
 
-router.get("transaction-summary/:userId/", getUserTransactionSummary);
+router.get("transaction-summary/:userId/", authenticateUser, getUserTransactionSummary);
 
 // Sample Response for transaction summary
 // {
@@ -98,6 +99,6 @@ router.get("transaction-summary/:userId/", getUserTransactionSummary);
 // });
 
 // Transaction summary route
-router.get("/:userId/summary", getUserTransactionSummaryController);
+router.get("/:userId/summary", authenticateUser, getUserTransactionSummaryController);
 
 export default router;
