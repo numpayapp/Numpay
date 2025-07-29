@@ -33,7 +33,7 @@ app.use(helmet({
 // CORS configuration with explicit allow-list
 const corsOptions = {
   origin: environment.isProduction 
-    ? [environment.BASE_URL || 'https://app.numpay.app', 'http://localhost:5173']
+    ? [environment.BASE_URL || 'https://app.numpay.app']
     : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
