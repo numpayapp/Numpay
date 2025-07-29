@@ -1,5 +1,6 @@
 import Twilio from "twilio";
 import environment from "../../config/enviroment"
+import { logger } from "../../utils/logger";
 const TwilioClient = Twilio(environment.TWILIO_SID, environment.TWILIO_AUTH_TOKEN);
 
 const generateOTP = async (phone: string, channel: string) => {
@@ -9,7 +10,7 @@ const generateOTP = async (phone: string, channel: string) => {
         to: phone,
         channel: channel,
     });
-    console.log(sendOTP);
+    logger.logPhoneOperation("OTP sent successfully", phone);
     return sendOTP;
 }
 
@@ -18,7 +19,7 @@ const verifyOTP = async (otp: string, phone: string) => {
         to: phone,
         code: otp,
     });
-    console.log(verificationCheck);
+    logger.logPhoneOperation("OTP verification completed", phone);
     return verificationCheck;
 }
 

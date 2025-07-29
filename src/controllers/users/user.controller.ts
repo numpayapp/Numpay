@@ -3,6 +3,7 @@ import { userService } from "../../db/services/userService";
 import { CreateUserInput, UpdateUserInput } from "../../types";
 import { privy } from '../../services/privy';
 import { createUserSchema, idRequestSchema, phoneNumberSchema, pregenerateWalletSchema, updateUserSchema, walletAddressSchema } from '../../schemas';
+import { logger } from '../../utils/logger';
 
 export const createUser = async (req: Request, res: Response) => {
     try {
@@ -18,8 +19,13 @@ export const createUser = async (req: Request, res: Response) => {
         }
 
         //sanitize phone number
+        logger.logUserAction("Processing user registration", userData.privyDID, {
+            hasPhoneNumber: !!userData.phoneNumber,
+            hasWalletAddress: !!userData.walletAddress
+        });
         const countryCode = userData.phoneNumber.split(" ")[0];
         userData.phoneNumber = userData.phoneNumber.replace(/[\s-]/g, "");
+        logger.info("Phone number sanitized successfully");
         // Check if the user already exists
         const existingUserByPhone = await userService.getUserByPhone(userData.phoneNumber);
         if (existingUserByPhone) {
@@ -40,7 +46,7 @@ export const createUser = async (req: Request, res: Response) => {
         const result = await userService.createUser(completeData);
         res.status(201).json(result);
     } catch (error) {
-        console.error("Create User Error:", error);
+        logger.error("Create User Error", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
@@ -75,7 +81,7 @@ export const pregenerateWallet = async (req: Request, res: Response) => {
         })
         res.status(200).json(result);
     } catch (error) {
-        console.error("Pregenerate Wallet Error:", error);
+        logger.error("Pregenerate Wallet Error", error);
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -95,7 +101,7 @@ export const getUserById = async (req: Request, res: Response) => {
 
         res.status(200).json(user);
     } catch (error) {
-        console.error("Get User Error:", error);
+        logger.error("Get User Error", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
@@ -112,7 +118,7 @@ export const getUserByPhone = async (req: Request, res: Response) => {
         }
         // Check if phone number has spaces or dashes
         const sanitizedPhoneNumber = phoneNumber.replace(/[\s-]/g, "");
-        console.log("Phone number:", sanitizedPhoneNumber);
+        logger.logPhoneOperation("Looking up user by phone", phoneNumber);
         const user = await userService.getUserByPhone(sanitizedPhoneNumber);
 
         if (!user) {
@@ -121,7 +127,7 @@ export const getUserByPhone = async (req: Request, res: Response) => {
 
         res.status(200).json(user);
     } catch (error) {
-        console.error("Get User By Phone Error:", error);
+        logger.error("Get User By Phone Error", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };

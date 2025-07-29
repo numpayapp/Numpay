@@ -14,17 +14,19 @@
   "description": "",
   "devDependencies": {
     "dotenv": "^16.5.0",
+    "prisma": "^6.12.0",
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "@prisma/client": "^6.6.0",
+    "@prisma/client": "^6.12.0",
     "@privy-io/server-auth": "^1.21.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/uuid": "^10.0.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "prisma": "^6.6.0",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
     "twilio": "^5.5.1",
     "uuid": "^11.1.0",
     "zod": "^3.25.76"
