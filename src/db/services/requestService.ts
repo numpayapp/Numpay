@@ -6,9 +6,22 @@ const prisma = new PrismaClient()
 
 export const requestService = {
     // Create
-    createRequest: async (data: CreateRequestInput): Promise<Request> => {
+    createRequest: async (requestData: CreateRequestInput): Promise<Request> => {
         return prisma.request.create({
-            data
+            data: {
+                requester: { connect: { id: requestData.requesterId } },
+                ...(requestData.payerId !== undefined ? { payer: { connect: { id: requestData.payerId } } } : {}),
+                payerPhone: requestData.payerPhone,
+                amountRequested: requestData.amountRequested,
+                requestType: requestData.requestType,
+                requestStatus: requestData.requestStatus,
+                requestMessage: requestData.requestMessage,
+                requestLink: requestData.requestLink
+            },
+            include: {
+                requester: true,
+                requestFrom: true
+            }
         })
     },
 

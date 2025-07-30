@@ -52,51 +52,6 @@ router.get("/wallet/:id", authenticateUser, async (req, res) => {
 
 router.get("transaction-summary/:userId/", authenticateUser, getUserTransactionSummary);
 
-// Sample Response for transaction summary
-// {
-//     "activities": [
-//         {
-//             "id": "tx1",
-//             "type": "TRANSACTION",
-//             "date": "2024-05-08T10:00:00Z",
-//             "amount": 100,
-//             "isOutgoing": true,
-//             "sender": { "name": "John", "phoneNumber": "+1234" },
-//             "receiver": { "name": "Jane", "phoneNumber": "+5678" }
-//         },
-//         {
-//             "id": "req1",
-//             "type": "REQUEST",
-//             "date": "2024-05-08T09:00:00Z",
-//             "amount": 50,
-//             "isOutgoing": false,
-//             "requester": { "name": "Jane", "phoneNumber": "+5678" }
-//         }
-//     ],
-//         "summary": {
-//         "totalSent": 500,
-//             "totalReceived": 300,
-//                 "netBalance": -200,
-//                     "totalTransactions": 10,
-//                         "totalRequests": 5
-//     }
-// }
-
-// router.get("/wallet/balance/:address", async (req, res) => {
-//     try {
-//         const { address } = req.params;
-//         const user = await getUserByWallet(req, res);
-//         if (!user) {
-//             return res.status(404).json({ message: "User not found" });
-//         }
-//         const balance = await userService.getWalletBalance(address);
-//         res.status(200).json({ balance });
-//     } catch (error) {
-//         console.error("Error fetching wallet balance:", error);
-//         res.status(500).json({ message: "Internal server error" });
-//     }
-// });
-
 // Transaction summary route
 router.get("/:userId/summary", authenticateUser, getUserTransactionSummaryController);
 

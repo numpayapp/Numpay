@@ -1,6 +1,6 @@
 // Example usage in a controller or route handler
 import { smsValidationSchema } from '../../schemas/smsValidationSchema';
-import { sendSMS } from '../../services/twilio';
+import { sendSMS } from '../../services/sms/';
 import { Request, Response } from "express";
 
 export const sendSMSController = async (req: Request, res: Response) => {

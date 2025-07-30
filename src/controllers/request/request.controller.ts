@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../../db/prisma";
-import { sendSMS } from "../../services/twilio";
+import { sendSMS } from "../../services/sms/";
 import environment from "../../config/enviroment";
 import { requestService } from "../../db/services/requestService";
 import { generateRequestLink } from "../../lib/generateLink";
@@ -57,6 +57,11 @@ export const requestMoney = async (req: Request, res: Response) => {
         }
         const payerId = payerExists.id;
 
+        if (!payerId || !requesterId) {
+            res.status(400).json({ error: "Payer ID and Requester ID are required." });
+            return;
+        }
+
         // Optional: Prevent duplicate pending requests
         const existingRequest = await prisma.request.findFirst({
             where: {
@@ -72,16 +77,15 @@ export const requestMoney = async (req: Request, res: Response) => {
         }
 
         // Store the request
-        const newRequest = await prisma.request.create({
-            data: {
-                requesterId,
-                payerId,
-                payerPhone,
-                amountRequested: amountRequested,
-                requestMessage: message,
-                requestType,
-                requestStatus: "PENDING"
-            }
+        // const newRequest = await prisma.request.create({
+        const newRequest = await requestService.createRequest({
+            requesterId,
+            payerId,
+            payerPhone,
+            amountRequested: amountRequested,
+            requestMessage: message,
+            requestType,
+            requestStatus: "PENDING"
         });
 
         // Notify the receiver if they're a registered user
@@ -171,9 +175,7 @@ export const cancelRequest = async (req: Request, res: Response) => {
         return;
     }
 
-    const request = await prisma.request.findUnique({
-        where: { id: requestId }
-    });
+    const request = await requestService.getRequestById(requestId);
 
     if (!request) {
         res.status(404).json({ error: "Request not found." });
@@ -209,6 +211,10 @@ export const updateRequestStatus = async (req: Request, res: Response) => {
 
     if (!request) {
         res.status(404).json({ error: "Request not found." });
+        return;
+    }
+    if (!request.payerId) {
+        res.status(400).json({ error: "Payer ID is required to update request status." });
         return;
     }
 

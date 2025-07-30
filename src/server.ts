@@ -2,12 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import environment from './config/enviroment';
-import { generateVerificationCodeController, verifyCodeController } from './controllers/verification/verification.controller';
-import { sendSMSController } from './controllers/sms/sms.controller';
-import userRoutes from './routes/user.route';
-import transactionRoutes from './routes/transaction.route';
-import requestRoute from './routes/request.route';
-import { otpLimiter } from './middleware/ratelimiter';
+
+import apiRouter from './routes/router'
+import { rateLimiter } from './middleware/ratelimiter';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -32,7 +29,7 @@ app.use(helmet({
 
 // CORS configuration with explicit allow-list
 const corsOptions = {
-  origin: environment.isProduction 
+  origin: environment.isProduction
     ? [environment.BASE_URL || 'https://app.numpay.app']
     : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001'],
   credentials: true,
@@ -45,15 +42,9 @@ const corsOptions = {
 app.use(express.json());
 app.use(cors(corsOptions));
 
-// Verification routes
-app.post('/api/verification/generate', generateVerificationCodeController);
-app.post('/api/verification/verify', otpLimiter, verifyCodeController);
-app.post('/api/send-text', sendSMSController);
-app.use('/api/user', userRoutes);
-app.use('/api/transaction', transactionRoutes);
-app.use('/api/request', requestRoute);
+app.use('/api', rateLimiter, apiRouter);
 
 // Start server
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });

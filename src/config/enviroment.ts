@@ -6,16 +6,11 @@ config();
 const isProduction = process.env.NODE_ENV === 'production';
 const requiredEnvVars = [
     'DATABASE_URL',
-    'TWILIO_SID',
-    'TWILIO_AUTH_TOKEN',
-    'TWILIO_SERVICE_SID',
-
+    'NODE_ENV'
 ];
 const testEnvVars = [
     'DATABASE_URL',
-    'TWILIO_SID',
-    'TWILIO_AUTH_TOKEN',
-    'TWILIO_SERVICE_SID',
+
 ];
 
 (isProduction ? requiredEnvVars : testEnvVars).forEach((envVar) => {
@@ -25,11 +20,7 @@ const testEnvVars = [
 });
 interface Environment {
     DATABASE_URL: string;
-    TWILIO_SID: string;
-    TWILIO_AUTH_TOKEN: string;
-    TWILIO_SERVICE_SID: string;
     PORT: string | number;
-    TWILIO_PHONE_NUMBER: string;
     isProduction: boolean;
     BASE_URL: string;
 }
@@ -40,11 +31,7 @@ requiredEnvVars.forEach((envVar) => {
 });
 const environment = {
     DATABASE_URL: isProduction ? process.env.DATABASE_URL : process.env.DATABASE_URL_TEST,
-    TWILIO_SID: isProduction ? process.env.TWILIO_SID : process.env.TWILIO_SID,
-    TWILIO_AUTH_TOKEN: isProduction ? process.env.TWILIO_AUTH_TOKEN : process.env.TWILIO_AUTH_TOKEN,
-    TWILIO_SERVICE_SID: isProduction ? process.env.TWILIO_SERVICE_SID : process.env.TWILIO_SERVICE_SID,
     PORT: process.env.PORT || 3000,
-    TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
     BASE_URL: isProduction ? process.env.BASE_URL : "http://localhost:5173",
     isProduction,
 } as Environment;

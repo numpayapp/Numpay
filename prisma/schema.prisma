@@ -53,7 +53,7 @@ model Transaction {
 model Request {
   id              String        @id @default(uuid())
   requesterId     String
-  payerId         String
+  payerId         String?
   payerPhone      String?
   requestType     RequestType
   amountRequested Float

@@ -26,9 +26,12 @@ export type CreateTransactionInput = {
 export type CreateRequestInput = {
     requesterId: string
     payerId: string
+    payerPhone?: string
     amountRequested: number
     requestType: RequestType
     requestStatus: RequestStatus
+    requestMessage?: string
+    requestLink?: string
 }
 
 export type UpdateRequestInput = {
