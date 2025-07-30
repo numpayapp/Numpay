@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { transactionService } from "../../db/services/transactionService";
 import prisma from "../../db/prisma";
+import { idRequestSchema } from "../../schemas";
+import { getTransactionStatsSchema, getUserTransactionsSchema, txHashSchema } from "../../schemas/transactionValidationSchema";
 
 export const recordTransaction = async (req: Request, res: Response) => {
     try {
@@ -46,6 +48,11 @@ export const recordTransaction = async (req: Request, res: Response) => {
 export const getTransactionById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+        const validatedId = idRequestSchema.safeParse({ id });
+        if (!validatedId.success) {
+            res.status(400).json({ message: "Invalid ID format", errors: validatedId.error.errors });
+            return
+        }
 
         const transaction = await transactionService.getTransactionById(id);
 
@@ -63,6 +70,11 @@ export const getTransactionById = async (req: Request, res: Response) => {
 export const getTransactionByTxHash = async (req: Request, res: Response) => {
     try {
         const { txhash } = req.params;
+        const validatedTxHash = txHashSchema.safeParse({ txHash: txhash });
+        if (!validatedTxHash.success) {
+            res.status(400).json({ message: "Invalid transaction hash format", errors: validatedTxHash.error.errors });
+            return
+        }
 
         const transaction = await transactionService.getTransactionByTxid(txhash);
 
@@ -81,9 +93,12 @@ export const getUserTransactions = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
         const { type } = req.query;
-
+        const validatedData = getUserTransactionsSchema.safeParse({ userId, type });
+        if (!validatedData.success) {
+            res.status(400).json({ message: "Invalid ID format", errors: validatedData.error.errors });
+            return
+        }
         const transactions = await transactionService.getUserTransactions(userId, type as any);
-
         res.status(200).json(transactions);
     } catch (error) {
         console.error("Error fetching user transactions:", error);
@@ -95,9 +110,12 @@ export const getTransactionStats = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
         const { startDate, endDate } = req.query;
-
+        const validatedData = getTransactionStatsSchema.safeParse({ id: userId, startDate, endDate });
+        if (!validatedData.success) {
+            res.status(400).json({ message: "Invalid ID format", errors: validatedData.error.errors });
+            return
+        }
         const transactions = await transactionService.getUserTransactions(userId);
-
         // Filter by date range if provided
         const filteredTransactions = transactions.filter(t => {
             if (!startDate || !endDate) return true;
@@ -105,7 +123,6 @@ export const getTransactionStats = async (req: Request, res: Response) => {
             return txDate >= new Date(startDate as string) &&
                 txDate <= new Date(endDate as string);
         });
-
         const stats = {
             totalSent: filteredTransactions
                 .filter(t => t.senderId === userId)
@@ -115,7 +132,6 @@ export const getTransactionStats = async (req: Request, res: Response) => {
                 .reduce((sum, t) => sum + t.amount, 0),
             transactionCount: filteredTransactions.length
         };
-
         res.status(200).json(stats);
     } catch (error) {
         console.error("Error fetching transaction stats:", error);

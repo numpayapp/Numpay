@@ -13,27 +13,64 @@ export const userService = {
     },
 
     // Read
-    getUserById: async (id: string): Promise<User | null> => {
+    getUserById: async (id: string): Promise<Partial<User> | null> => {
         return prisma.user.findUnique({
-            where: { privyDID: id }
+            where: { privyDID: id },
+            select: {
+                id: true,
+                privyDID: true,
+                phoneNumber: true,
+                name: true,
+                walletAddress: true,
+                countryCode: true,
+                status: true,
+                // Omit fields like deletedAt, createdAt, updatedAt, or any sensitive/internal fields
+            }
         })
     },
 
-    getUserByPhone: async (phoneNumber: string): Promise<User | null> => {
+    getUserByPhone: async (phoneNumber: string): Promise<Partial<User> | null> => {
         return prisma.user.findUnique({
-            where: { phoneNumber: phoneNumber }
+            where: { phoneNumber: phoneNumber },
+            select: {
+                id: true,
+                privyDID: true,
+                phoneNumber: true,
+                name: true,
+                walletAddress: true,
+                countryCode: true,
+                status: true,
+            }
         })
     },
 
-    getUserByWallet: async (walletAddress: string): Promise<User | null> => {
+    getUserByWallet: async (walletAddress: string): Promise<Partial<User> | null> => {
         return prisma.user.findUnique({
-            where: { walletAddress }
+            where: { walletAddress },
+            select: {
+                id: true,
+                privyDID: true,
+                phoneNumber: true,
+                name: true,
+                walletAddress: true,
+                countryCode: true,
+                status: true,
+            }
         })
     },
 
-    getAllUsers: async (): Promise<User[]> => {
+    getAllUsers: async (): Promise<Partial<User>[]> => {
         return prisma.user.findMany({
-            where: { deletedAt: null }
+            where: { deletedAt: null },
+            select: {
+                id: true,
+                privyDID: true,
+                phoneNumber: true,
+                name: true,
+                walletAddress: true,
+                countryCode: true,
+                status: true,
+            }
         })
     },
 

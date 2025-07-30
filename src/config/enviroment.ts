@@ -33,6 +33,11 @@ interface Environment {
     isProduction: boolean;
     BASE_URL: string;
 }
+requiredEnvVars.forEach((envVar) => {
+    if (!process.env[envVar]) {
+        throw new Error(`Environment variable ${envVar} is not set`);
+    }
+});
 const environment = {
     DATABASE_URL: isProduction ? process.env.DATABASE_URL : process.env.DATABASE_URL_TEST,
     TWILIO_SID: isProduction ? process.env.TWILIO_SID : process.env.TWILIO_SID,
@@ -42,8 +47,7 @@ const environment = {
     TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
     BASE_URL: isProduction ? process.env.BASE_URL : "http://localhost:5173",
     isProduction,
-    // Export other environment variables here
-};
+} as Environment;
 
 if (isProduction) {
     console.log('Running in production mode');

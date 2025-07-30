@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { userService } from "../../db/services/userService";
 import { CreateUserInput, UpdateUserInput } from "../../types";
 import { privy } from '../../services/privy';
+import { createUserSchema, idRequestSchema, phoneNumberSchema, pregenerateWalletSchema, privyDIDSchema, updateUserSchema, walletAddressSchema } from '../../schemas';
 import { logger } from '../../utils/logger';
 
 export const createUser = async (req: Request, res: Response) => {
@@ -12,10 +13,15 @@ export const createUser = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Phone number and wallet address are required" });
         }
 
+        const validatedUserData = createUserSchema.safeParse(userData);
+        if (!validatedUserData.success) {
+            return res.status(400).json({ message: "Invalid input", errors: validatedUserData.error.errors });
+        }
+
         //sanitize phone number
-        logger.logUserAction("Processing user registration", userData.privyDID, { 
-          hasPhoneNumber: !!userData.phoneNumber,
-          hasWalletAddress: !!userData.walletAddress 
+        logger.logUserAction("Processing user registration", userData.privyDID, {
+            hasPhoneNumber: !!userData.phoneNumber,
+            hasWalletAddress: !!userData.walletAddress
         });
         const countryCode = userData.phoneNumber.split(" ")[0];
         userData.phoneNumber = userData.phoneNumber.replace(/[\s-]/g, "");
@@ -48,6 +54,10 @@ export const createUser = async (req: Request, res: Response) => {
 export const pregenerateWallet = async (req: Request, res: Response) => {
     try {
         const { phoneNumber } = req.body;
+        const validatedData = pregenerateWalletSchema.safeParse(req.body);
+        if (!validatedData.success) {
+            return res.status(400).json({ message: "Invalid input", errors: validatedData.error.errors });
+        }
 
         if (!phoneNumber) {
             return res.status(400).json({ message: "Phone number is required" });
@@ -79,6 +89,10 @@ export const pregenerateWallet = async (req: Request, res: Response) => {
 export const getUserById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+        const validatedId = privyDIDSchema.safeParse({ id });
+        if (!validatedId.success) {
+            return res.status(400).json({ message: "Invalid ID format", errors: validatedId.error.errors });
+        }
         const user = await userService.getUserById(id);
 
         if (!user) {
@@ -95,6 +109,10 @@ export const getUserById = async (req: Request, res: Response) => {
 export const getUserByPhone = async (req: Request, res: Response) => {
     try {
         const { phoneNumber } = req.params;
+        const validatedPhone = phoneNumberSchema.safeParse({ phoneNumber: phoneNumber });
+        if (!validatedPhone.success) {
+            return res.status(400).json({ message: "Invalid phone number format", errors: validatedPhone.error.errors });
+        }
         if (!phoneNumber) {
             return res.status(400).json({ message: "Phone number is required" });
         }
@@ -117,6 +135,10 @@ export const getUserByPhone = async (req: Request, res: Response) => {
 export const getUserByWallet = async (req: Request, res: Response) => {
     try {
         const { walletAddress } = req.params;
+        const validatedWallet = walletAddressSchema.safeParse({ address: walletAddress });
+        if (!validatedWallet.success) {
+            return res.status(400).json({ message: "Invalid wallet address format", errors: validatedWallet.error.errors });
+        }
         const user = await userService.getUserByWallet(walletAddress);
 
         if (!user) {
@@ -135,10 +157,16 @@ export const updateUser = async (req: Request, res: Response) => {
         const { id } = req.params;
         const updateData: UpdateUserInput = req.body;
 
+        const validatedUpdateData = updateUserSchema.safeParse({ id, ...updateData });
+        if (!validatedUpdateData.success) {
+            return res.status(400).json({ message: "Invalid input", errors: validatedUpdateData.error.errors });
+        }
+
         const existingUser = await userService.getUserById(id);
         if (!existingUser) {
             return res.status(404).json({ message: "User not found" });
         }
+        console.log(updateData)
 
         const updatedUser = await userService.updateUser(id, updateData);
         res.status(200).json(updatedUser);
@@ -151,6 +179,10 @@ export const updateUser = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+        const validatedId = idRequestSchema.safeParse({ id });
+        if (!validatedId.success) {
+            return res.status(400).json({ message: "Invalid ID format", errors: validatedId.error.errors });
+        }
 
         const existingUser = await userService.getUserById(id);
         if (!existingUser) {
@@ -168,7 +200,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
         const users = await userService.getAllUsers();
-        res.status(200).json(users);
+        return res.status(200).json(users);
     } catch (error) {
         console.error("Get All Users Error:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -178,6 +210,11 @@ export const getAllUsers = async (req: Request, res: Response) => {
 export const getUserTransactionSummary = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
+        const validatedId = idRequestSchema.safeParse({ id: userId });
+        if (!validatedId.success) {
+            res.status(400).json({ message: "Invalid ID format", errors: validatedId.error.errors });
+            return
+        }
 
         const existingUser = await userService.getUserById(userId);
         if (!existingUser) {
@@ -196,6 +233,11 @@ export const getUserTransactionSummary = async (req: Request, res: Response) => 
 export const getUserTransactionSummaryController = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
+        const validatedId = idRequestSchema.safeParse({ id: userId });
+        if (!validatedId.success) {
+            res.status(400).json({ message: "Invalid ID format", errors: validatedId.error.errors });
+            return
+        }
 
         // Validate user exists
         const user = await userService.getUserById(userId);
