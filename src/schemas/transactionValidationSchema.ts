@@ -18,7 +18,7 @@ export const txHashSchema = z.object({
 
 export const getUserTransactionsSchema = z.object({
     userId: z.string().uuid(),
-    type: z.enum(['DEPOSIT', 'WITHDRAWAL', 'TRANSFER']).optional(),
+    type: z.enum(['deposit', 'receive', 'withdrawal', 'send']).optional(),
     limit: z.number().int().min(1).max(100).optional(),
     offset: z.number().int().min(0).optional(),
 });

@@ -93,7 +93,7 @@ export const getUserTransactions = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
         const { type } = req.query;
-        const validatedData = getUserTransactionsSchema.safeParse({ id: userId, type });
+        const validatedData = getUserTransactionsSchema.safeParse({ userId, type });
         if (!validatedData.success) {
             res.status(400).json({ message: "Invalid ID format", errors: validatedData.error.errors });
             return

@@ -16,6 +16,10 @@ export const idRequestSchema = z.object({
     id: z.string().uuid(),
 });
 
+export const privyDIDSchema = z.object({
+    id: z.string().startsWith("did:privy:", "Invalid Privy DID format"),
+});
+
 export const phoneNumberSchema = z.object({
     phoneNumber: z.string().min(10).max(15),
     countryCode: z.string().optional(),
@@ -26,7 +30,7 @@ export const walletAddressSchema = z.object({
 });
 
 export const updateUserSchema = z.object({
-    id: z.string().uuid(),
+    id: z.string().startsWith("did:privy:", "Invalid Privy DID format"),
     phoneNumber: z.string().min(10).max(15).optional(),
     walletAddress: z.string().optional(),
     countryCode: z.string().optional(),

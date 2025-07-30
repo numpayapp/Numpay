@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { userService } from "../../db/services/userService";
 import { CreateUserInput, UpdateUserInput } from "../../types";
 import { privy } from '../../services/privy';
-import { createUserSchema, idRequestSchema, phoneNumberSchema, pregenerateWalletSchema, updateUserSchema, walletAddressSchema } from '../../schemas';
+import { createUserSchema, idRequestSchema, phoneNumberSchema, pregenerateWalletSchema, privyDIDSchema, updateUserSchema, walletAddressSchema } from '../../schemas';
 import { logger } from '../../utils/logger';
 
 export const createUser = async (req: Request, res: Response) => {
@@ -89,7 +89,7 @@ export const pregenerateWallet = async (req: Request, res: Response) => {
 export const getUserById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const validatedId = idRequestSchema.safeParse({ id });
+        const validatedId = privyDIDSchema.safeParse({ id });
         if (!validatedId.success) {
             return res.status(400).json({ message: "Invalid ID format", errors: validatedId.error.errors });
         }
@@ -166,6 +166,7 @@ export const updateUser = async (req: Request, res: Response) => {
         if (!existingUser) {
             return res.status(404).json({ message: "User not found" });
         }
+        console.log(updateData)
 
         const updatedUser = await userService.updateUser(id, updateData);
         res.status(200).json(updatedUser);
