@@ -10,8 +10,7 @@ export const requestService = {
         return prisma.request.create({
             data: {
                 requester: { connect: { id: requestData.requesterId } },
-                ...(requestData.payerId !== undefined ? { payer: { connect: { id: requestData.payerId } } } : {}),
-                payerPhone: requestData.payerPhone,
+                requestFrom: { connect: { id: requestData.payerId } }, payerPhone: requestData.payerPhone,
                 amountRequested: requestData.amountRequested,
                 requestType: requestData.requestType,
                 requestStatus: requestData.requestStatus,

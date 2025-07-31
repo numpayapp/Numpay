@@ -137,3 +137,5 @@ dist
 build
 /src/generated
 .env
+test.ts
+test.js
