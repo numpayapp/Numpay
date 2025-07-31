@@ -81,6 +81,18 @@ const transformTransaction = (tx: ApiTransaction): Transaction => ({
 export const useTransactions = (limit?: number) => {
   const { user } = useAuth();
 
+  // Common query options for rate limiting
+  const queryOptions = {
+    enabled: !!user?.dbId,
+    staleTime: 30 * 1000, // 30 seconds - data stays fresh for 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes - cache time
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    refetchOnMount: false, // Don't refetch when component mounts
+    refetchOnReconnect: false, // Don't refetch on network reconnect
+    retry: 1, // Only retry once on failure
+    retryDelay: 2000, // Wait 2 seconds before retry
+  };
+
   const { data: sendData, isLoading: isSendLoading } = useQuery({
     queryKey: ['transactions', 'send', user?.dbId],
     queryFn: async () => {
@@ -89,7 +101,7 @@ export const useTransactions = (limit?: number) => {
       );
       return data.map(transformTransaction);
     },
-    enabled: !!user?.dbId,
+    ...queryOptions,
   });
 
   const { data: receiveData, isLoading: isReceiveLoading } = useQuery({
@@ -100,7 +112,7 @@ export const useTransactions = (limit?: number) => {
       );
       return data.map(transformTransaction);
     },
-    enabled: !!user?.dbId,
+    ...queryOptions,
   });
 
   const { data: depositData, isLoading: isDepositLoading } = useQuery({
@@ -111,7 +123,7 @@ export const useTransactions = (limit?: number) => {
       );
       return data.map(transformTransaction);
     },
-    enabled: !!user?.dbId,
+    ...queryOptions,
   });
 
   const { data: withdrawalData, isLoading: isWithdrawalLoading } = useQuery({
@@ -122,7 +134,7 @@ export const useTransactions = (limit?: number) => {
       );
       return data.map(transformTransaction);
     },
-    enabled: !!user?.dbId,
+    ...queryOptions,
   });
 
   const allTransactions = [
