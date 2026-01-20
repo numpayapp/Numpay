@@ -17,12 +17,12 @@ export function useSmartWalletBalance() {
   const [balanceWei, setBalanceWei] = useState<bigint>(0n);
 
   useEffect(() => {
-    if (!kernelClient) return;
+    if (!kernelClient || !kernelClient.kernelClient || kernelClient.loading || !kernelClient.address) return;
     let cancelled = false;
 
     const fetchBalance = async () => {
       try {
-        const address = await kernelClient.kernelClient.account.getAddress();
+        const address = kernelClient.address;
         const currentTime = Date.now();
 
         if (
@@ -35,7 +35,7 @@ export function useSmartWalletBalance() {
           return;
         }
 
-        const bal = await publicClient.readContract({
+        const bal = await (publicClient as any).readContract({
           address: USDC_ADDRESS,
           abi: erc20Abi,
           functionName: 'balanceOf',

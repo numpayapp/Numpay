@@ -10,9 +10,9 @@ import {
 } from '@zerodev/sdk';
 import { useSignAuthorization } from '@privy-io/react-auth';
 import { KERNEL_V3_3_BETA, getEntryPoint, KernelVersionToAddressesMap } from '@zerodev/sdk/constants';
-import { baseSepolia } from 'viem/chains';
+import { base, baseSepolia } from 'viem/chains';
 
-const chain = baseSepolia;
+const chain = base;
 const kernelVersion = KERNEL_V3_3_BETA;
 const bundlerRpc = import.meta.env.VITE_APP_ZERODEV_RPC as string;
 const paymasterRpc = import.meta.env.VITE_APP_ZERODEV_RPC as string;
