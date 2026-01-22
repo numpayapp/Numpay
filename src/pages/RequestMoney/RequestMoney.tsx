@@ -131,12 +131,12 @@ const RequestMoney: React.FC = () => {
           <h2 className="text-2xl font-bold mb-2">
             Who are you requesting from?
           </h2>
-          <p className="text-muted-foreground">
+          {/* <p className="text-muted-foreground">
             Choose how you want to share your request
-          </p>
+          </p> */}
         </div>
 
-        <Card
+        {/* <Card
           className={`p-4 cursor-pointer ${
             requestType === "anyone" ? "border-primary" : ""
           }`}
@@ -153,7 +153,7 @@ const RequestMoney: React.FC = () => {
               </div>
             </div>
           </div>
-        </Card>
+        </Card> */}
 
         <div>
           <div className="text-sm font-medium mb-2">From a specific number</div>
@@ -303,9 +303,9 @@ const RequestMoney: React.FC = () => {
         />
 
         <div className="space-y-8">{renderStep()}</div>
-        <p className="text-center py-3 hover:underline cursor-pointer underline-offset-4">
+        {/* <p className="text-center py-3 hover:underline cursor-pointer underline-offset-4">
           <Link to={"/qr"}>Request using QR Code</Link>
-        </p>
+        </p> */}
       </div>
     </div>
   );
