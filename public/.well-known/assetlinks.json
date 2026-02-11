@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.numpay.app.twa",
+        "sha256_cert_fingerprints": ["6C:BC:8B:3D:69:D9:CD:72:91:50:D4:66:7C:DA:CD:15:69:73:E7:56:98:09:19:01:1A:37:82:33:67:D6:17:BA"]
+      }
+    }]
