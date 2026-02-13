@@ -243,7 +243,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
         `You have requested $${amount.toFixed(2)} ${requestType === "DIRECT" ? `from ${from}` : ""}`
       );
 
-      return { success: true, requestId: response.data.id };
+      return { success: true, requestId: response.data.requestId };
     } catch (error) {
       console.error("Request money error:", error);
       showError(

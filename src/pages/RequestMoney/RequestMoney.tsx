@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Share2, Loader2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useWallet } from "../../context/WalletContext";
-import { useAuth } from "../../context/AuthContext";
-import { showSuccess } from "../../lib/utils";
+import { showSuccess, showError } from "../../lib/utils";
 import { countries } from "../../components/CountrySelector";
 
 import Header from "../../components/Header";
@@ -26,10 +25,10 @@ const RequestMoney: React.FC = () => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [requestId, setRequestId] = useState<string | null>(null);
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { requestMoney } = useWallet();
-  const { user } = useAuth();
 
   const handleContinue = () => {
     switch (currentStep) {
@@ -76,14 +75,69 @@ const RequestMoney: React.FC = () => {
     }
   };
 
-  const handleShare = () => {
+  const handleQuickShare = async () => {
+    if (parseFloat(amount) <= 0 || phoneNumber.length < 10) return;
+    try {
+      setIsLoading(true);
+      const result = await requestMoney(
+        parseFloat(amount),
+        phoneNumber,
+        "DIRECT",
+        message
+      );
+      if (result.success && result.requestId) {
+        const requestLink = `${window.location.origin}/send?requestId=${result.requestId}`;
+        setGeneratedLink(requestLink);
+      }
+    } catch (error) {
+      console.error("Error creating request link:", error);
+      showError("Failed to generate link", "Please try again");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!generatedLink) return;
+    try {
+      await navigator.clipboard.writeText(generatedLink);
+    } catch {
+      const textArea = document.createElement("textarea");
+      textArea.value = generatedLink;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+    }
+    showSuccess("Link copied!", "Payment request link has been copied to clipboard");
+  };
+
+  const handleShare = async () => {
     if (!requestId) return;
     const requestLink = `${window.location.origin}/send?requestId=${requestId}`;
-    navigator.clipboard.writeText(requestLink);
-    showSuccess(
-      "Link copied!",
-      "Payment request link has been copied to clipboard"
-    );
+    try {
+      await navigator.clipboard.writeText(requestLink);
+      showSuccess(
+        "Link copied!",
+        "Payment request link has been copied to clipboard"
+      );
+    } catch {
+      // Fallback for browsers/contexts where clipboard API is blocked
+      const textArea = document.createElement("textarea");
+      textArea.value = requestLink;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      showSuccess(
+        "Link copied!",
+        "Payment request link has been copied to clipboard"
+      );
+    }
   };
 
   const LoadingOverlay = () => (
@@ -131,12 +185,12 @@ const RequestMoney: React.FC = () => {
           <h2 className="text-2xl font-bold mb-2">
             Who are you requesting from?
           </h2>
-          {/* <p className="text-muted-foreground">
+          <p className="text-muted-foreground">
             Choose how you want to share your request
-          </p> */}
+          </p>
         </div>
 
-        {/* <Card
+        <Card
           className={`p-4 cursor-pointer ${
             requestType === "anyone" ? "border-primary" : ""
           }`}
@@ -153,7 +207,7 @@ const RequestMoney: React.FC = () => {
               </div>
             </div>
           </div>
-        </Card> */}
+        </Card>
 
         <div>
           <div className="text-sm font-medium mb-2">From a specific number</div>
@@ -303,9 +357,30 @@ const RequestMoney: React.FC = () => {
         />
 
         <div className="space-y-8">{renderStep()}</div>
-        {/* <p className="text-center py-3 hover:underline cursor-pointer underline-offset-4">
-          <Link to={"/qr"}>Request using QR Code</Link>
-        </p> */}
+        {currentStep === "summary" && !generatedLink && (
+          <p
+            className="text-center py-3 hover:underline cursor-pointer underline-offset-4"
+            onClick={handleQuickShare}
+          >
+            Request using Link
+          </p>
+        )}
+        {generatedLink && (
+          <Card className="p-4 space-y-3">
+            <p className="text-sm text-muted-foreground text-center">Your request link</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={generatedLink}
+                className="flex-1 bg-muted text-sm p-2 rounded-md border truncate"
+              />
+              <Button size="sm" onClick={handleCopyLink}>
+                Copy
+              </Button>
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );

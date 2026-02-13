@@ -50,12 +50,10 @@ const Login: React.FC = () => {
     try {
       const success = await verifyCode(verificationCode);
       if (success) {
-        // Check if there's a redirect URL stored
+        // Redirect is handled by AuthContext's onLoginComplete callback
+        // which checks for 'redirectAfterLogin' in localStorage
         const redirectUrl = localStorage.getItem('redirectAfterLogin');
-        if (redirectUrl) {
-          localStorage.removeItem('redirectAfterLogin'); // Clean up
-          navigate(redirectUrl);
-        } else {
+        if (!redirectUrl) {
           navigate("/home");
         }
       }

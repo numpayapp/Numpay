@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useWallets } from '@privy-io/react-auth';
 import { createPublicClient, createWalletClient, custom, Hex, http, PublicClient } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { signerToEcdsaValidator } from '@zerodev/ecdsa-validator';
 import {
   createKernelAccount,
@@ -17,6 +18,7 @@ const kernelVersion = KERNEL_V3_3_BETA;
 const bundlerRpc = import.meta.env.VITE_APP_ZERODEV_RPC as string;
 const paymasterRpc = import.meta.env.VITE_APP_ZERODEV_RPC as string;
 const entryPoint = getEntryPoint("0.7");
+const sponsorKey = import.meta.env.VITE_APP_7702_SPONSOR_KEY as Hex | undefined;
 
 const publicClient = createPublicClient({
   chain,
@@ -84,6 +86,7 @@ export const useCreateKernel = () => {
           kernelVersion,
           address: walletClient.account.address,
           eip7702Auth: authorization,
+          ...(sponsorKey ? { eip7702SponsorAccount: privateKeyToAccount(sponsorKey) } : {}),
         });
 
         const paymasterClient = createZeroDevPaymasterClient({
@@ -96,6 +99,7 @@ export const useCreateKernel = () => {
           chain,
           bundlerTransport: http(bundlerRpc),
           paymaster: paymasterClient,
+          client: publicClient,
         });
 
         const address = await kernelClient.account.getAddress();

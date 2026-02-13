@@ -97,6 +97,13 @@ const Send: React.FC = () => {
             return;
           }
 
+          // Prevent requester from paying their own request
+          if (request.requesterId === user?.dbId) {
+            setError("You can't pay your own request");
+            setStep("error");
+            return;
+          }
+
           // If all validations pass, set the request details and move to summary
           setRequestDetails(request);
           setAmount(String(request.amountRequested));
