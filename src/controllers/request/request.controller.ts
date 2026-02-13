@@ -62,20 +62,6 @@ export const requestMoney = async (req: Request, res: Response) => {
             return;
         }
 
-        // Optional: Prevent duplicate pending requests
-        const existingRequest = await prisma.request.findFirst({
-            where: {
-                requesterId,
-                payerPhone,
-                requestStatus: "PENDING"
-            }
-        });
-
-        if (existingRequest) {
-            res.status(409).json({ error: "You already have a pending request to this user." });
-            return;
-        }
-
         // Store the request
         // const newRequest = await prisma.request.create({
         const newRequest = await requestService.createRequest({
@@ -150,7 +136,7 @@ export const requestMoneyGlobal = async (req: Request, res: Response) => {
         });
 
         // Generate a global link for the request
-        const generatedLink = `${environment.BASE_URL}/request/${newRequest.id}`;
+        const generatedLink = `${environment.BASE_URL}/send?requestId=${newRequest.id}`;
 
         // Update Request with the generated link
         await prisma.request.update({
