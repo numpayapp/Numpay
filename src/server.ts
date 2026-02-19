@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import environment from './config/enviroment';
+import prisma from './db/prisma';
 
 import apiRouter from './routes/router'
 import { rateLimiter } from './middleware/ratelimiter';
@@ -44,7 +45,19 @@ app.use(cors(corsOptions));
 
 app.use('/api', rateLimiter, apiRouter);
 
-// Start server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+// Start server with DB connection check
+async function start() {
+  try {
+    await prisma.$connect();
+    console.log('Database connected successfully');
+  } catch (error) {
+    console.error('Failed to connect to database:', error);
+    process.exit(1);
+  }
+
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+}
+
+start();
