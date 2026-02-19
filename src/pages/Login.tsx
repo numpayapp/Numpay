@@ -73,6 +73,16 @@ const Login: React.FC = () => {
   };
 
   if (isAuthenticated) {
+    const redirectUrl = localStorage.getItem('redirectAfterLogin');
+    if (redirectUrl) {
+      localStorage.removeItem('redirectAfterLogin');
+      try {
+        const url = new URL(redirectUrl);
+        return <Navigate to={url.pathname + url.search} replace />;
+      } catch {
+        return <Navigate to="/home" replace />;
+      }
+    }
     return <Navigate to="/home" replace />;
   }
 

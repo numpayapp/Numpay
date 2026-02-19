@@ -94,6 +94,10 @@ export default function Layout() {
   }, [location.pathname]);
 
   if (!isAuthenticated) {
+    // Store current URL so user is redirected back after login
+    if (location.pathname !== '/login') {
+      localStorage.setItem('redirectAfterLogin', window.location.href);
+    }
     return <Navigate to="/login" replace />;
   }
 
