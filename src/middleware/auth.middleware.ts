@@ -30,20 +30,22 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     
     // Verify the token with Privy
-    const verifiedClaims = await privy.verifyAuthToken(token);
-    
+    const verifiedClaims = await privy.utils().auth().verifyAccessToken(token);
+
     if (!verifiedClaims) {
-      res.status(401).json({ 
+      res.status(401).json({
         error: 'Invalid token',
-        message: 'Authentication token is invalid' 
+        message: 'Authentication token is invalid'
       });
       return;
     }
 
     // Extract user information from verified claims
+    // @privy-io/node SDK returns user_id (DID string)
+    const did = verifiedClaims.user_id;
     const user = {
-      privyDID: verifiedClaims.userId,
-      userId: verifiedClaims.userId,
+      privyDID: did,
+      userId: did,
       email: undefined, // Will be fetched separately if needed
       phoneNumber: undefined // Will be fetched separately if needed
     };
@@ -119,12 +121,13 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
     }
 
     const token = authHeader.substring(7);
-    const verifiedClaims = await privy.verifyAuthToken(token);
-    
+    const verifiedClaims = await privy.utils().auth().verifyAccessToken(token);
+
     if (verifiedClaims) {
+      const did = verifiedClaims.user_id;
       req.user = {
-        privyDID: verifiedClaims.userId,
-        userId: verifiedClaims.userId,
+        privyDID: did,
+        userId: did,
         email: undefined, // Will be fetched separately if needed
         phoneNumber: undefined // Will be fetched separately if needed
       };

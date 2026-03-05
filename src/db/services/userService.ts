@@ -1,76 +1,65 @@
-import { PrismaClient, User, Transaction, Request } from '@prisma/client'
+import { PrismaClient, User } from '@prisma/client'
 import { CreateUserInput, UpdateUserInput } from '../../types'
 
 const prisma = new PrismaClient()
+
+const userSelect = {
+    id: true,
+    privyDID: true,
+    phoneNumber: true,
+    name: true,
+    solanaAddress: true,
+    privyWalletId: true,
+    countryCode: true,
+    status: true,
+} as const;
 
 export const userService = {
     // Create
     createUser: async (data: CreateUserInput): Promise<User> => {
         data.phoneNumber = data.phoneNumber.replace(/[\s-]/g, "");
-        return prisma.user.create({
-            data
-        })
+        return prisma.user.create({ data })
     },
 
     // Read
     getUserById: async (id: string): Promise<Partial<User> | null> => {
         return prisma.user.findUnique({
             where: { privyDID: id },
-            select: {
-                id: true,
-                privyDID: true,
-                phoneNumber: true,
-                name: true,
-                walletAddress: true,
-                countryCode: true,
-                status: true,
-                // Omit fields like deletedAt, createdAt, updatedAt, or any sensitive/internal fields
-            }
+            select: userSelect,
         })
     },
 
     getUserByPhone: async (phoneNumber: string): Promise<Partial<User> | null> => {
         return prisma.user.findUnique({
-            where: { phoneNumber: phoneNumber },
-            select: {
-                id: true,
-                privyDID: true,
-                phoneNumber: true,
-                name: true,
-                walletAddress: true,
-                countryCode: true,
-                status: true,
-            }
+            where: { phoneNumber },
+            select: userSelect,
         })
     },
 
-    getUserByWallet: async (walletAddress: string): Promise<Partial<User> | null> => {
+    getUserBySolanaAddress: async (solanaAddress: string): Promise<Partial<User> | null> => {
         return prisma.user.findUnique({
-            where: { walletAddress },
-            select: {
-                id: true,
-                privyDID: true,
-                phoneNumber: true,
-                name: true,
-                walletAddress: true,
-                countryCode: true,
-                status: true,
-            }
+            where: { solanaAddress },
+            select: userSelect,
+        })
+    },
+
+    // Keep old name for backwards compatibility with any remaining callers
+    getUserByWallet: async (walletAddress: string): Promise<Partial<User> | null> => {
+        return prisma.user.findFirst({
+            where: {
+                OR: [
+                    { walletAddress },
+                    { solanaAddress: walletAddress },
+                ]
+            },
+            select: userSelect,
         })
     },
 
     getAllUsers: async (): Promise<Partial<User>[]> => {
         return prisma.user.findMany({
             where: { deletedAt: null },
-            select: {
-                id: true,
-                privyDID: true,
-                phoneNumber: true,
-                name: true,
-                walletAddress: true,
-                countryCode: true,
-                status: true,
-            }
+            select: userSelect,
         })
     },
 
@@ -96,54 +85,31 @@ export const userService = {
     getUserTransactionSummary: async (userId: string) => {
         const transactions = await prisma.transaction.findMany({
             where: {
-                OR: [
-                    { senderId: userId },
-                    { receiverId: userId }
-                ]
+                OR: [{ senderId: userId }, { receiverId: userId }]
             },
             include: {
                 sender: {
-                    select: {
-                        name: true,
-                        phoneNumber: true,
-                        walletAddress: true
-                    }
+                    select: { name: true, phoneNumber: true, solanaAddress: true }
                 },
                 receiver: {
-                    select: {
-                        name: true,
-                        phoneNumber: true,
-                        walletAddress: true
-                    }
+                    select: { name: true, phoneNumber: true, solanaAddress: true }
                 }
             },
-            orderBy: {
-                createdAt: 'desc'
-            }
+            orderBy: { createdAt: 'desc' }
         });
 
         const requests = await prisma.request.findMany({
             where: {
-                OR: [
-                    { requesterId: userId },
-                    { payerId: userId }
-                ]
+                OR: [{ requesterId: userId }, { payerId: userId }]
             },
             include: {
                 requester: {
-                    select: {
-                        name: true,
-                        phoneNumber: true,
-                        walletAddress: true
-                    }
+                    select: { name: true, phoneNumber: true, solanaAddress: true }
                 }
             },
-            orderBy: {
-                requestDate: 'desc'
-            }
+            orderBy: { requestDate: 'desc' }
         });
 
-        // Combine and sort all activities
         const allActivities = [
             ...transactions.map(t => ({
                 ...t,
@@ -161,7 +127,6 @@ export const userService = {
             }))
         ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
-        // Calculate totals
         const totalSent = transactions
             .filter(t => t.senderId === userId)
             .reduce((sum, t) => sum + t.amount, 0);

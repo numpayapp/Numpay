@@ -6,11 +6,15 @@ import {
   getUserTransactions,
   getTransactionStats
 } from '../controllers/transaction/transaction.controller';
+import { executeTransfer } from '../controllers/transaction/executeTransfer.controller';
 import { authenticateUser } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// Create new transaction
+// Execute Solana USDC transfer (server-signed via Privy)
+router.post('/execute-transfer', authenticateUser, executeTransfer);
+
+// Create new transaction (manual record, kept for backwards compat)
 router.post('/', authenticateUser, recordTransaction);
 
 // Get transaction by ID

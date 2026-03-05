@@ -20,7 +20,9 @@ model User {
   countryCode   String
   email         String?    @unique
   phoneNumber   String     @unique
-  walletAddress String     @unique
+  walletAddress String?    @unique
+  solanaAddress String?    @unique
+  privyWalletId String?    @unique
   createdAt     DateTime   @default(now())
   deletedAt     DateTime?
   status        UserStatus @default(ACTIVE)

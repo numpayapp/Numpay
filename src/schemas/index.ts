@@ -3,7 +3,9 @@ import { z } from 'zod';
 export const createUserSchema = z.object({
     privyDID: z.string(),
     phoneNumber: z.string().min(10).max(15),
-    walletAddress: z.string(),
+    walletAddress: z.string().optional(),
+    solanaAddress: z.string().min(32).max(44).optional(),
+    privyWalletId: z.string().optional(),
     countryCode: z.string().optional()
 });
 
@@ -26,7 +28,7 @@ export const phoneNumberSchema = z.object({
 });
 
 export const walletAddressSchema = z.object({
-    address: z.string().length(42, "Invalid wallet address length"),
+    address: z.string().min(32).max(44),
 });
 
 export const updateUserSchema = z.object({

@@ -4,7 +4,9 @@ export type CreateUserInput = {
     privyDID: string
     name?: string
     phoneNumber: string
-    walletAddress: string
+    walletAddress?: string
+    solanaAddress?: string
+    privyWalletId?: string
     countryCode: string
 }
 
@@ -12,6 +14,8 @@ export type UpdateUserInput = Partial<CreateUserInput> & {
     status?: UserStatus
     name?: string
     walletAddress?: string
+    solanaAddress?: string
+    privyWalletId?: string
 }
 
 export type CreateTransactionInput = {

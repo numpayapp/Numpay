@@ -13,15 +13,15 @@ export const recordTransaction = async (req: Request, res: Response) => {
             res.status(400).json({ message: "All fields are required" });
         }
 
-        const sender = await prisma.user.findUnique({
-            where: { walletAddress: senderAddress },
+        const sender = await prisma.user.findFirst({
+            where: { OR: [{ solanaAddress: senderAddress }, { walletAddress: senderAddress }] },
         });
         if (!sender) {
             res.status(404).json({ message: 'Sender user not found' });
             return;
         }
-        const receiver = await prisma.user.findUnique({
-            where: { walletAddress: receiverAddress },
+        const receiver = await prisma.user.findFirst({
+            where: { OR: [{ solanaAddress: receiverAddress }, { walletAddress: receiverAddress }] },
         });
         if (!receiver) {
             res.status(404).json({ message: 'Receiver user not found' });

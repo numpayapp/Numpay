@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createUser, pregenerateWallet, getUserById, getUserByPhone, getUserByWallet, updateUser, getUserTransactionSummary, getUserTransactionSummaryController } from "../controllers/users/user.controller";
+import { createUser, pregenerateWallet, getUserById, getUserByPhone, getUserByWallet, getUserBalance, updateUser, getUserTransactionSummary, getUserTransactionSummaryController } from "../controllers/users/user.controller";
 import { authenticateUser } from "../middleware/auth.middleware";
 
 const router = Router();
@@ -49,6 +49,9 @@ router.get("/wallet/:id", authenticateUser, async (req, res) => {
 
     }
 });
+
+// USDC balance for a user (by privyDID)
+router.get("/balance/:privyDID", authenticateUser, getUserBalance);
 
 router.get("transaction-summary/:userId/", authenticateUser, getUserTransactionSummary);
 
