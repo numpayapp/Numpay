@@ -21,16 +21,14 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { useSmartWalletBalance } from "../hooks/use-balance";
-import { formatUnits } from "viem";
+import { useSolanaBalance } from "../hooks/use-balance";
 import { format } from "date-fns";
 import { useTransactions } from "../hooks/use-transactions";
 import { Transaction } from "../hooks/use-transactions";
 import { useAuth } from "../context/AuthContext";
 
 export default function HomePage() {
-  const balanceWei = useSmartWalletBalance();
-  const balance = parseFloat(formatUnits(balanceWei, 6));
+  const { balance } = useSolanaBalance();
   const navigate = useNavigate();
   const [showBalance, setShowBalance] = useState(true);
   const { transactions, isLoading } = useTransactions(3);

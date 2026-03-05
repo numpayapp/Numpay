@@ -1,3 +1,2 @@
-
-// export const USDC_ADDRESS = "0x036cbd53842c5426634e7929541ec2318f3dcf7e";
-export const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+// Solana USDC mint address (mainnet)
+export const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';

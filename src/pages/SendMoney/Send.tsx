@@ -4,8 +4,7 @@ import AmountInput from "../../components/AmountInput";
 import PhoneInput from "../../components/PhoneInput";
 import Button from "../../components/Button";
 import { useWallet } from "../../context/WalletContext";
-import { useSmartWalletBalance } from "../../hooks/use-balance";
-import { formatUnits } from "viem";
+import { useSolanaBalance } from "../../hooks/use-balance";
 import { Plus, ArrowLeft, Send as SendIcon, User2, Loader2, AlertCircle } from "lucide-react";
 import { Card } from "../../components/ui/card";
 import { useAuth } from "../../context/AuthContext";
@@ -33,8 +32,7 @@ const Send: React.FC = () => {
   const location = useLocation();
   const { requestId: requestIdFromParams } = useParams();
   const { user } = useAuth();
-  const balanceWei = useSmartWalletBalance();
-  const balance = parseFloat(formatUnits(balanceWei, 6));
+  const { balance } = useSolanaBalance();
   const { sendMoney, updateRequestStatus, getRequestDetails } = useWallet();
 
   // Get requestId from URL query params or route params

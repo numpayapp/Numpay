@@ -10,6 +10,7 @@ import Layout from "./components/Layout";
 import { PrivyProvider } from '@privy-io/react-auth';
 import { AuthProvider } from "./context/AuthContext";
 import { WalletProvider } from "./context/WalletContext";
+import { SolanaWalletProvider } from "./context/SolanaWalletProvider";
 
 // Pages
 import Activity from "./pages/Activity";
@@ -117,15 +118,17 @@ const App = () => (
           loginMethods: ['sms'],
           embeddedWallets: {
             showWalletUIs: false,
-            createOnLogin: 'all-users'
+            createOnLogin: 'off'
           }
         }}
       >
         <AuthProvider>
-          <WalletProvider>
-            <Toaster />
-            <RouterProvider router={router} />
-          </WalletProvider>
+          <SolanaWalletProvider>
+            <WalletProvider>
+              <Toaster />
+              <RouterProvider router={router} />
+            </WalletProvider>
+          </SolanaWalletProvider>
         </AuthProvider>
       </PrivyProvider>
     </TooltipProvider>

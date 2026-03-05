@@ -8,7 +8,7 @@ interface DbUser {
   id: string;
   name?: string | null;
   phoneNumber: string;
-  walletAddress: string;
+  solanaAddress: string;
   createdAt: string;
   status: string;
 }
@@ -70,10 +70,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     onComplete: async ({ user: privyUser }) => {
       try {
         const privyDID = privyUser.id;
-        const walletAddress = privyUser.wallet?.address;
         const phoneNumber = privyUser.phone?.number;
-        if (!walletAddress || !phoneNumber) {
-          throw new Error("Missing wallet or phone on Privy user");
+        if (!phoneNumber) {
+          throw new Error("Missing phone number on Privy user");
         }
 
         let db: DbUser;
@@ -84,7 +83,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (err.response?.status === 404 || err.response?.data?.message === "User not found") {
             const createResp = await axiosInstance.post<DbUser>("/api/user/register", {
               privyDID,
-              walletAddress,
               phoneNumber,
             });
             db = createResp.data;
@@ -99,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           dbId: db.id,
           name: db.name,
           phone: { number: db.phoneNumber },
-          wallet: { ...privyUser.wallet!, address: db.walletAddress },
+          wallet: { address: db.solanaAddress } as AppUser["wallet"],
           createdAt: new Date(db.createdAt),
           status: db.status,
         };
