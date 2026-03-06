@@ -33,6 +33,125 @@ Progressive Web App (PWA) frontend for NumPay — send and receive USDC on Solan
 
 ---
 
+## Architecture
+
+```mermaid
+graph TD
+    User["User\n(Browser / Android TWA)"]
+
+    subgraph Frontend ["NumPay PWA"]
+        Privy["Privy SDK\nSMS OTP Auth"]
+        WalletAdapter["Solana Wallet Adapter\nPhantom · Solflare · MWA"]
+        AuthCtx["AuthContext\nUser state + registration"]
+        WalletCtx["WalletContext\nsendMoney · balance"]
+        Pages["Pages\nHome · Send · AddFunds\nRequest · Activity · QR"]
+    end
+
+    subgraph Backend ["NumPay API (api-solana.numpay.app)"]
+        API["Express REST API"]
+        PrivyServer["Privy Server Wallets\nServer-side signing"]
+        DB["PostgreSQL\nNeon · Prisma"]
+    end
+
+    Solana["Solana Mainnet\nHelius RPC"]
+
+    User --> Pages
+    Pages --> AuthCtx
+    Pages --> WalletCtx
+    AuthCtx --> Privy
+    WalletCtx -->|"POST /api/transaction/execute-transfer"| API
+    Pages -->|"GET /api/user/balance"| API
+    API --> PrivyServer
+    API --> DB
+    PrivyServer -->|"Signed USDC tx"| Solana
+    WalletAdapter -->|"Add Funds: user signs deposit"| Solana
+```
+
+---
+
+## Frontend Flow
+
+### Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as NumPay App
+    participant Privy as Privy SDK
+    participant API as NumPay API
+
+    User->>App: Open app
+    App->>Privy: Check session
+    alt Not logged in
+        App->>User: Show Login page
+        User->>App: Enter phone number
+        App->>Privy: sendCode(phone)
+        Privy-->>User: SMS OTP
+        User->>App: Enter OTP
+        App->>Privy: verifyCode(otp)
+        Privy-->>App: Authenticated user + JWT
+        App->>API: POST /api/user/register\n{ privyDID, phoneNumber }
+        API-->>App: User record with solanaAddress
+        App->>App: Set user in AuthContext
+    end
+    App->>User: Redirect to Home
+```
+
+### Send Money Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as NumPay App
+    participant API as NumPay API
+    participant Solana as Solana Mainnet
+
+    User->>App: Enter recipient phone + amount
+    App->>API: GET /api/user/phone/:phone
+    alt Recipient found
+        API-->>App: Recipient user details
+    else Not registered
+        API-->>App: 404 (backend will pre-generate on transfer)
+    end
+    User->>App: Tap Send
+    App->>API: POST /api/transaction/execute-transfer\n{ recipientPhone, amount }
+    API->>Solana: Build + sign + broadcast USDC tx (server-side)
+    Solana-->>API: Transaction signature
+    API-->>App: { success: true, txhash }
+    App->>User: Success toast + redirect to Home
+```
+
+### Add Funds Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as NumPay App
+    participant Wallet as External Wallet\n(Phantom / Solflare / MWA)
+    participant Solana as Solana Mainnet
+
+    User->>App: Open Add Funds page
+    App->>User: Show "Connect Wallet" button
+    User->>Wallet: Approve connection
+    Wallet-->>App: Connected public key
+    App->>Solana: Fetch wallet USDC balance
+    Solana-->>App: Balance
+    App->>User: Show balance + amount input
+    User->>App: Enter amount and tap Deposit
+    App->>Solana: Check if NumPay wallet ATA exists
+    alt ATA missing
+        Note over App: Add createATA instruction
+    end
+    App->>Wallet: Request transaction signature
+    Wallet->>User: Approve transaction prompt
+    User->>Wallet: Approve
+    Wallet->>Solana: Broadcast signed USDC transfer
+    Solana-->>App: Confirmed
+    App->>User: Success toast + redirect to Home
+```
+
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -55,7 +174,7 @@ bun install
 Create a `.env` file in the project root:
 
 ```env
-# Firebase (used for notifications / analytics)
+# Firebase
 VITE_APP_FIREBASE_API_KEY=your_firebase_api_key
 VITE_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 VITE_APP_FIREBASE_PROJECT_ID=your_project_id
@@ -79,19 +198,15 @@ VITE_SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
 ```bash
 # Development
 npm run dev
-# or
-bun run dev
-```
 
-App runs at `http://localhost:5173`.
-
-```bash
 # Production build
 npm run build
 
 # Preview production build
 npm run preview
 ```
+
+App runs at `http://localhost:5173`.
 
 ---
 
@@ -105,40 +220,24 @@ src/
 │   ├── AmountInput.tsx
 │   └── Layout.tsx
 ├── context/
-│   ├── AuthContext.tsx        # Privy auth state + user registration
-│   ├── WalletContext.tsx      # App-level wallet state + sendMoney logic
-│   └── SolanaWalletProvider.tsx  # Solana wallet adapter setup (MWA + extensions)
+│   ├── AuthContext.tsx            # Privy auth state + user registration
+│   ├── WalletContext.tsx          # App-level wallet state + sendMoney logic
+│   └── SolanaWalletProvider.tsx   # Solana wallet adapter (MWA + extensions)
 ├── hooks/
-│   └── use-balance.ts         # USDC balance polling hook
+│   └── use-balance.ts             # USDC balance polling hook
 ├── pages/
-│   ├── Home.tsx               # Dashboard with balance + quick actions
-│   ├── AddFunds.tsx           # Connect external wallet + USDC deposit
-│   ├── SendMoney/Send.tsx     # Send USDC by phone number
-│   ├── RequestMoney/          # Create and share payment requests
-│   ├── Activity.tsx           # Transaction history
-│   ├── QRCode.tsx             # QR code for receiving
-│   ├── Login.tsx              # SMS OTP login
-│   └── Settings/              # Account, security, and support settings
+│   ├── Home.tsx                   # Dashboard — balance + quick actions
+│   ├── AddFunds.tsx               # Connect external wallet + USDC deposit
+│   ├── SendMoney/Send.tsx         # Send USDC by phone number
+│   ├── RequestMoney/              # Create and share payment requests
+│   ├── Activity.tsx               # Transaction history
+│   ├── QRCode.tsx                 # QR code for receiving
+│   ├── Login.tsx                  # SMS OTP login
+│   └── Settings/                  # Account, security, support settings
 ├── lib/
-│   └── utils.ts               # cn(), showError(), showSuccess(), formatNumber()
-└── App.tsx                    # Router + provider tree
+│   └── utils.ts                   # cn(), showError(), showSuccess()
+└── App.tsx                        # Router + provider tree
 ```
-
----
-
-## Key Pages
-
-### Home
-Displays the user's USDC balance (polled from backend), quick action buttons (Send, Request, Add Funds, QR), and recent transaction activity.
-
-### Add Funds
-Connects an external Solana wallet (Phantom, Solflare, or MWA on Android). Fetches the connected wallet's USDC balance and validates the entered amount before building and signing an SPL token transfer transaction directly in the user's wallet app.
-
-### Send Money
-Looks up a recipient by phone number and executes a server-side USDC transfer via `POST /api/transaction/execute-transfer`. No signing required from the sender's device.
-
-### Payment Requests
-Creates shareable payment request links. Supports global (anyone can pay) and direct (specific contact) request types.
 
 ---
 
@@ -164,49 +263,3 @@ The app is configured as a full PWA via `vite-plugin-pwa`:
 - **Auto-update** — service worker updates automatically on new deployments
 - **Offline support** — core assets cached via Workbox
 - **Icons** — full Android launcher icon set at `/public/AppImages/android/`
-
----
-
-## Deployment
-
-Build and serve as a static site:
-
-```bash
-npm run build
-# Output: dist/
-```
-
-Deploy the `dist/` folder to any static host (Vercel, Netlify, Nginx, S3 + CloudFront).
-
-**Nginx example** (`app.numpay.app`):
-
-```nginx
-server {
-    listen 80;
-    server_name app.numpay.app;
-    root /var/www/numpay-dapp/dist;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
----
-
-## Environment Architecture
-
-```
-Browser / TWA
-      │
-      ├── Privy SDK ──── SMS OTP auth ──── Privy cloud
-      │
-      ├── Solana Wallet Adapter ──── External wallet (sign deposits only)
-      │
-      └── Axios ──── NumPay Backend API (api-solana.numpay.app)
-                          │
-                          └── Privy Server Wallets ──── Solana Mainnet
-```
-
-All money transfers (send/receive) go through the backend and are signed server-side. External wallet connections are only used for the **Add Funds** flow where users deposit from their own wallet.
