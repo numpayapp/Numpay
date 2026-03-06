@@ -20,31 +20,95 @@ REST API server for NumPay — a phone-number-based USDC payment platform on Sol
 
 ---
 
-## Architecture Overview
+## Architecture
 
-```
-Client (Privy JWT)
-        │
-        ▼
-  Auth Middleware  ──── Privy verifyAccessToken
-        │
-        ▼
-   API Routes
-   ├── /api/user        User registration, lookup, balance
-   ├── /api/transaction Transfer execution, history, stats
-   └── /api/request     Payment requests
-        │
-        ▼
-  Privy Wallet API  ──── signAndSendTransaction (server-side)
-        │
-        ▼
-   Solana Mainnet   ──── Helius RPC
-        │
-        ▼
-  PostgreSQL (Neon) ──── Transaction records
+```mermaid
+graph TD
+    Client["Client App\n(React PWA / Mobile)"]
+    Auth["Auth Middleware\nPrivy verifyAccessToken"]
+    Routes["API Routes\n/user · /transaction · /request"]
+    UserCtrl["User Controller\nRegister · Lookup · Balance"]
+    TxCtrl["Transaction Controller\nExecute Transfer · History"]
+    ReqCtrl["Request Controller\nCreate · Update"]
+    Privy["Privy Wallet API\nsignAndSendTransaction"]
+    Solana["Solana Mainnet\nHelius RPC"]
+    DB["PostgreSQL\nNeon · Prisma ORM"]
+
+    Client -->|"Bearer JWT"| Auth
+    Auth --> Routes
+    Routes --> UserCtrl
+    Routes --> TxCtrl
+    Routes --> ReqCtrl
+    UserCtrl --> DB
+    UserCtrl -->|"getTokenAccountBalance"| Solana
+    TxCtrl --> Privy
+    TxCtrl --> DB
+    ReqCtrl --> DB
+    Privy -->|"Signed USDC tx"| Solana
 ```
 
-Every USDC transfer is signed server-side using Privy's wallet API. Users authenticate with their phone number only and never interact with a private key.
+---
+
+## Backend Flow
+
+### User Registration Flow
+
+```mermaid
+sequenceDiagram
+    participant App as Client App
+    participant API as NumPay API
+    participant Privy as Privy Wallet API
+    participant Treasury as Treasury Wallet
+    participant DB as PostgreSQL
+
+    App->>API: POST /api/user/register\n{ privyDID, phoneNumber }
+    API->>DB: Check if user exists by privyDID
+    alt User exists
+        DB-->>API: Return existing user
+        API-->>App: 200 OK (existing user)
+    else Phone has pregenerated wallet
+        DB-->>API: Pregenerated record found
+        API->>DB: Update privyDID on existing record
+        API-->>App: 200 OK (merged user)
+    else New user
+        API->>Privy: walletApi.create({ chainType: 'solana' })
+        Privy-->>API: { wallet.id, wallet.address }
+        API->>DB: Create user with solanaAddress + privyWalletId
+        API--)Treasury: Fund wallet with 0.01 SOL (fire & forget)
+        API-->>App: 201 Created
+    end
+```
+
+### USDC Transfer Flow
+
+```mermaid
+sequenceDiagram
+    participant App as Client App
+    participant API as NumPay API
+    participant DB as PostgreSQL
+    participant Solana as Solana RPC (Helius)
+    participant Privy as Privy Wallet API
+
+    App->>API: POST /api/transaction/execute-transfer\n{ recipientPhone, amount }
+    API->>DB: Lookup sender by privyDID
+    API->>DB: Lookup recipient by phone
+    alt Recipient not registered
+        API->>Privy: Pre-generate wallet for phone
+        API->>DB: Store pregenerated record
+    end
+    API->>Solana: getLatestBlockhash('finalized')
+    API->>Solana: Check recipient ATA exists
+    alt ATA missing
+        Note over API: Prepend createAssociatedTokenAccount ix
+    end
+    API->>API: Build USDC SPL transfer transaction
+    API->>Privy: walletApi.solana.signAndSendTransaction\n{ walletId, transaction }
+    Privy->>Solana: Broadcast signed transaction
+    Solana-->>Privy: Transaction signature
+    Privy-->>API: txhash
+    API->>DB: Record transaction (COMPLETED)
+    API-->>App: { success: true, txhash }
+```
 
 ---
 
@@ -218,47 +282,6 @@ Request
 ├── amountRequested Float
 ├── requestType     GLOBAL | DIRECT | OTHER
 └── requestStatus   PENDING | APPROVED | REJECTED | CANCELED
-```
-
----
-
-## Deployment (AWS EC2 + PM2 + Nginx)
-
-```bash
-# Clone and build
-git clone https://github.com/numpayapp/Numpay.git -b backend numpay-backend
-cd numpay-backend
-npm install && npm run build
-
-# Start with PM2
-pm2 start build/server.js --name numpay-backend
-pm2 save
-pm2 startup
-```
-
-**Nginx config** (`/etc/nginx/sites-available/api-solana.numpay.app`):
-
-```nginx
-server {
-    listen 80;
-    server_name api-solana.numpay.app;
-
-    location / {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-Enable and reload:
-```bash
-sudo ln -s /etc/nginx/sites-available/api-solana.numpay.app /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
-sudo certbot --nginx -d api-solana.numpay.app
 ```
 
 ---
