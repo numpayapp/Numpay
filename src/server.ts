@@ -8,7 +8,7 @@ import apiRouter from './routes/router'
 import { rateLimiter } from './middleware/ratelimiter';
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 // Security middleware
 app.use(helmet({
@@ -31,8 +31,8 @@ app.use(helmet({
 // CORS configuration with explicit allow-list
 const corsOptions = {
   origin: environment.isProduction
-    ? ['https://app.numpay.app', 'https://numpay.app', environment.BASE_URL].filter(Boolean)
-    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001'],
+    ? ['https://api-solana.numpay.app', 'https://numpay.app', environment.BASE_URL].filter(Boolean)
+    : ['http://localhost:3001', 'http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

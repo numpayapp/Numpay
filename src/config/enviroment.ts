@@ -31,7 +31,7 @@ requiredEnvVars.forEach((envVar) => {
 });
 const environment = {
     DATABASE_URL: isProduction ? process.env.DATABASE_URL : process.env.DATABASE_URL_TEST,
-    PORT: process.env.PORT || 3000,
+    PORT: process.env.PORT || 3001,
     BASE_URL: isProduction ? process.env.BASE_URL : "http://localhost:5173",
     isProduction,
 } as Environment;
